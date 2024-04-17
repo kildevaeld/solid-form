@@ -33,6 +33,8 @@ export function setValue<T extends HTMLElement>(el: T, value: unknown) {
 		}
 	} else if (el instanceof HTMLSelectElement) {
 		el.value = String(value);
+	} else if (el instanceof HTMLTextAreaElement) {
+		el.value = String(value);
 	}
 }
 
