@@ -1,4 +1,10 @@
-import { type Accessor, batch, createComputed, untrack } from "solid-js";
+import {
+	type Accessor,
+	batch,
+	createComputed,
+	untrack,
+	createUniqueId,
+} from "solid-js";
 import { createStore, unwrap } from "solid-js/store";
 import { type ValidationEvent, createField, type Field } from "./field.js";
 import { callOrReturn, toError } from "./util.js";
@@ -16,6 +22,7 @@ interface FormState<T> {
 }
 
 export interface FormOptions<T> {
+	id?: string;
 	defaultValues: T | Accessor<T>;
 	resetOnDefaultValueChange?: boolean | Accessor<boolean>;
 	validationEvent?: ValidationEvent | Accessor<ValidationEvent>;
@@ -53,6 +60,8 @@ export function createForm<T>(options: FormOptions<T>): Form<T> {
 		submitError: void 0,
 	});
 
+	const id = options.id ?? createUniqueId();
+
 	const isValid = () => {
 		return !Object.values(store.validationErrors).some(
 			(m) => (m as string[]).length,
@@ -84,6 +93,7 @@ export function createForm<T>(options: FormOptions<T>): Form<T> {
 
 	const _createField = <K extends keyof T>(name: K) => {
 		return createField<K, T>(
+			id,
 			name,
 			{
 				setValue(value) {

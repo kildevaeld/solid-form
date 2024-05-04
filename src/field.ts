@@ -18,9 +18,18 @@ export interface Field<T> {
 	errors(): string[] | undefined;
 	control<E extends HTMLElement>(el: E, accessor?: () => true): void;
 	validate(): Promise<boolean>;
+	isValid: Accessor<boolean>;
+	readonly aria: Aria;
+}
+
+export interface Aria {
+	readonly hint: string;
+	readonly error: string;
+	readonly control: string;
 }
 
 export function createField<K extends keyof T, T>(
+	formId: string,
 	name: K,
 	channel: Channel<K, T>,
 	validations: Accessor<Validation[]>,
@@ -44,7 +53,7 @@ export function createField<K extends keyof T, T>(
 
 		channel.setErrors(errors);
 
-		return !!errors.length;
+		return !errors.length;
 	};
 
 	const setValue = (value: T[K] | undefined) => {
@@ -71,6 +80,8 @@ export function createField<K extends keyof T, T>(
 		}
 	};
 
+	const prefix = `${formId}-${String(name)}`;
+
 	return {
 		value: () => channel.value(),
 		setValue,
@@ -78,5 +89,11 @@ export function createField<K extends keyof T, T>(
 		errors: channel.errors,
 		validate,
 		control: createControl(channel.value, setValue, touch),
+		isValid: () => !channel.errors()?.length,
+		aria: {
+			hint: `${prefix}-hint`,
+			error: `${prefix}-error`,
+			control: `${prefix}-control`,
+		},
 	};
 }
