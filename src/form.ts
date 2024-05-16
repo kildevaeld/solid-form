@@ -36,7 +36,7 @@ export interface FormOptions<T> {
 export interface Form<T> {
 	field<K extends keyof T>(name: K): Field<T[K]>;
 	values: Accessor<Partial<T>>;
-	submit(e?: Event): void;
+	submit(e?: Event): Promise<boolean>;
 	clear(): void;
 	reset(): void;
 	status: Accessor<Status>;
@@ -194,8 +194,8 @@ export function createForm<T>(options: FormOptions<T>): Form<T> {
 				await validate();
 			}
 
-			if (!callOrReturn(options.submitOnError) && !isValid()) {
-				return;
+			if (!callOrReturn(options.submitOnError) && !untrack(isValid)) {
+				return false;
 			}
 
 			mutate("status", "submitting");
@@ -211,6 +211,8 @@ export function createForm<T>(options: FormOptions<T>): Form<T> {
 					mutate("submitError", toError(e));
 				});
 			}
+
+			return untrack(isValid);
 		},
 	};
 }
