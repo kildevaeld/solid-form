@@ -3,7 +3,7 @@
 
 ```ts
 
-import { createForm, required } from '@kildevaeld/solid-form"
+import { createForm, required } from "@kildevaeld/solid-form"
 
 
 function App() {
