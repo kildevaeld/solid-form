@@ -1,55 +1,57 @@
 {
-	"name": "@kildevaeld/solid-form",
-	"version": "0.3.0",
-	"description": "",
-	"type": "module",
-	"main": "./dist/cjs/index.js",
-	"module": "./dist/esm/index.js",
-	"types": "./dist/types/index.d.ts",
-	"exports": {
-		".": {
-			"solid": {
-				"types": "./dist/types/index.d.ts",
-				"default": "./dist/source/index.js"
-			},
-			"import": {
-				"types": "./dist/types/index.d.ts",
-				"default": "./dist/esm/index.js"
-			},
-			"browser": {
-				"types": "./dist/types/index.d.ts",
-				"default": "./dist/esm/index.js"
-			},
-			"require": {
-				"types": "./dist/types/index.d.ts",
-				"default": "./dist/cjs/index.js"
-			},
-			"node": {
-				"types": "./dist/types/index.d.ts",
-				"default": "./dist/cjs/index.js"
-			}
-		}
-	},
-	"files": ["dist"],
-	"scripts": {
-		"build": "rollup -c",
-		"watch": "rollup -cw",
-		"prepublish": "rollup -c"
-	},
-	"keywords": [],
-	"author": "Rasmus Kildevæld <rasmuskildevaeld@gmail.com>",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/kildevaeld/solid-form"
-	},
-	"license": "MIT",
-	"peerDependencies": {
-		"solid-js": "^1.8.16"
-	},
-	"devDependencies": {
-		"solid-js": "^1.8.16",
-		"@biomejs/biome": "^1.7.0",
-		"rollup": "^4.14.3",
-		"rollup-preset-solid": "^2.0.1"
-	}
+  "name": "@kildevaeld/solid-form",
+  "version": "0.4.0",
+  "description": "",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "solid": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/source/index.js"
+      },
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "browser": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      },
+      "node": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -cw",
+    "prepublish": "rollup -c"
+  },
+  "keywords": [],
+  "author": "Rasmus Kildevæld <rasmuskildevaeld@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kildevaeld/solid-form"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "solid-js": "^1.8.16"
+  },
+  "devDependencies": {
+    "solid-js": "^1.9.11",
+    "@biomejs/biome": "^1.7.0",
+    "rollup": "^4.14.3",
+    "rollup-preset-solid": "^2.0.1"
+  }
 }
