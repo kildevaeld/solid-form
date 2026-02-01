@@ -1,12 +1,8 @@
-import { EventEmitter, IEventEmitter } from "./emitter.js";
+import { Base, ChangeEvent } from "./base.js";
+import { EventEmitter, IEventEmitter, Subscription } from "./emitter.js";
+import { Equallity } from "./util.js";
 
 export interface ModelFields {}
-
-export type Equallity<T> = (a: T | undefined, b: T | undefined) => boolean;
-
-export function isEqual<T>(a: T | undefined, b: T | undefined): boolean {
-  return a === b;
-}
 
 type MapFieldChange<T> = {
   [K in keyof T as K extends string ? `change:${K}` : never]: {
@@ -23,9 +19,10 @@ type ModelEvents<T extends ModelFields> = MapFieldChange<T> & {
   };
 };
 
-export class Model<T extends { [key: string]: any }> implements IEventEmitter<
-  ModelEvents<T>
-> {
+export class Model<T extends { [key: string]: any }>
+  extends Base<T>
+  implements IEventEmitter<ModelEvents<T>>
+{
   #emitter: EventEmitter<ModelEvents<T>> = new EventEmitter();
   #values: { [K in keyof T]?: T[K] };
   #equal: Equallity<T[string]>;
@@ -34,6 +31,7 @@ export class Model<T extends { [key: string]: any }> implements IEventEmitter<
     values: Partial<T> = {},
     equal: Equallity<T[string]> = (a, b) => a === b,
   ) {
+    super();
     this.#values = values;
     this.#equal = equal;
   }
@@ -88,5 +86,11 @@ export class Model<T extends { [key: string]: any }> implements IEventEmitter<
 
   keys() {
     return Object.keys(this.#values);
+  }
+
+  subscribe(observer: (value: ChangeEvent<T>) => void): Subscription {
+    return this.on("change", (e) =>
+      observer({ value: this.values, prev: this.values } as any),
+    );
   }
 }

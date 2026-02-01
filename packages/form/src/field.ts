@@ -22,11 +22,13 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
   #equal: Equallity<T>;
   #validations: Validation<T>[];
   #required: boolean = false;
+  defaultValue: T | undefined;
 
   constructor(options: FieldOptions<K, T>, equal: Equallity<T> = isEqual) {
     super();
     this.#name = options.name;
     this.#value = options.value;
+    this.defaultValue = options.value;
     this.#equal = equal;
     this.#validations = options.validations ?? [];
     this.#required = options.required ?? false;
@@ -36,14 +38,26 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
     return this.#name;
   }
 
+  get isDirty() {
+    return !this.#equal(this.defaultValue, this.value);
+  }
+
   get value(): T | undefined {
     return this.#value;
   }
 
   set value(value: T | undefined) {
+    this.set(value);
+  }
+
+  reset() {
+    this.#value = this.defaultValue;
+  }
+
+  set(value: T | undefined, trigger: boolean = true) {
     const prev = this.#value;
     this.#value = value;
-    if (!this.#equal(prev, value)) {
+    if (!this.#equal(prev, value) && trigger) {
       this.#errors.length = 0;
       this.emit("change", { prev, value });
     }
@@ -57,7 +71,7 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
     return this.#errors.length == 0;
   }
 
-  validate(trigger = true) {
+  async validate(trigger = true) {
     this.#errors.length = 0;
 
     if (this.#value == undefined) {
@@ -67,7 +81,7 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
     } else {
       for (const validation of this.#validations) {
         try {
-          validation.validate(this.#value);
+          await validation.validate(this.#value);
         } catch (e) {
           if (e instanceof ValidationError) {
             this.#errors.push(e);

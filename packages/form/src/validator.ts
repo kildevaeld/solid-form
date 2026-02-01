@@ -3,7 +3,7 @@ export class Validator<T> {}
 export class ValidationError extends Error {}
 
 export interface Validation<T> {
-  validate(value: T): void;
+  validate(value: T): Promise<void>;
 }
 
 export abstract class AValidation {
@@ -20,7 +20,7 @@ export abstract class AValidation {
 export class PatternValidation implements Validation<string> {
   constructor(public readonly pattern: RegExp | string) {}
 
-  validate(value: string): void {
+  async validate(value: string) {
     if (value.match(this.pattern) == null) {
       throw new ValidationError(`Expected pattern: ${this.pattern}`);
     }
@@ -55,7 +55,7 @@ export class MinValidation<T extends string | number | unknown[]>
     super("Min");
   }
 
-  validate(value: T): void {
+  async validate(value: T) {
     const len = this.getLenth(value);
     if (len < this.min) {
       throw new ValidationError("Min");
@@ -77,7 +77,7 @@ export class MaxValidation<T extends string | number | unknown[]>
     super();
   }
 
-  validate(value: T): void {
+  async validate(value: T) {
     const len = this.getLenth(value);
 
     if (len > this.max) {

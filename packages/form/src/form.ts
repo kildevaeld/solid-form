@@ -21,7 +21,7 @@ export interface FormFields {}
 
 export type FormEvents<T> = MapFieldChange<T> &
   MapFieldValidate<T> & {
-    change: { prev: T | undefined; value: T | undefined; field: keyof T };
+    change: {};
     validate:
       | { status: "valid" }
       | { status: "invalid"; errors: { [K in keyof T]?: ValidationError[] } };
@@ -36,9 +36,11 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
   #fields: { [K in keyof T]?: Field<K, T[K]> } = {};
   #equal: Equallity<T[keyof T]>;
   #validationErrors: { [K in keyof T]?: ValidationError[] } = {};
+  #defaultValues: Partial<T>;
   constructor(options: FormOptions<T>, equal = isEqual) {
     super();
     this.#equal = equal;
+    this.#defaultValues = options.defaultValues ?? {};
 
     if (options.fields) {
       for (const key in options.fields) {
@@ -58,6 +60,15 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
     }
   }
 
+  get isDirty() {
+    for (const k in this.#fields) {
+      if (this.#fields[k]?.isDirty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   get validationErrors() {
     return { ...this.#validationErrors };
   }
@@ -75,11 +86,11 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
     return this.#fields[name]!;
   }
 
-  validate() {
+  async validate() {
     this.#validationErrors = {};
     let failed = false;
     for (const k in this.#fields) {
-      if (!this.#fields[k]?.validate()) {
+      if (!(await this.#fields[k]?.validate())) {
         failed = true;
       }
     }
@@ -90,6 +101,31 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
         ? { status: "invalid", errors: { ...this.#validationErrors } }
         : { status: "valid" },
     );
+  }
+
+  reset(defaultValues?: Partial<T>) {
+    for (const name in this.#fields) {
+      const field = this.#fields[name]!;
+      const prev = field?.value;
+      if (defaultValues) {
+        field.defaultValue = defaultValues?.[name];
+      }
+      field?.reset();
+      if (!this.#equal(prev, this.#defaultValues[name])) {
+        this.emit(`change:${name}` as any, {
+          prev,
+          value: this.#defaultValues[name],
+        });
+      }
+
+      this.emit("change" as any, {});
+    }
+  }
+
+  clear() {
+    for (const key in this.#fields) {
+      this.#fields[key]?.set(void 0, false);
+    }
   }
 
   toJSON() {
@@ -105,11 +141,7 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
     this.#fields[options.name] = field;
     field.on("change", (e) => {
       this.emit(`change:${String(options.name)}` as any, e as any);
-      this.emit("change", {
-        value: e.value,
-        prev: e.prev,
-        field: options.name,
-      } as any);
+      this.emit("change" as any, {});
     });
 
     field.on("validate", (e) => {
@@ -123,22 +155,3 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
     });
   }
 }
-
-const form = new Form<{ name: string; age: number }>({
-  fields: {
-    name: {
-      required: true,
-      value: "Name",
-      validations: [pattern(/\w/), min(210)],
-    },
-    age: {
-      validations: [min(18)],
-    },
-  },
-});
-
-form.field("name").on("change", (e) => {
-  console.log(e);
-});
-
-console.log(form.field("name").value);
