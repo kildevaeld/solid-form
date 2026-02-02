@@ -44,7 +44,7 @@
     "watch": "tsup --watch --config tsup.config.ts",
     "test": "vitest run --config vitest.config.js",
     "test:watch": "vitest watch --config vitest.config.js",
-    "prepublish": "vitest watch --config vitest.config.js; tsup --config tsup.config.ts"
+    "prepublish": "vitest run --config vitest.config.js; tsup --config tsup.config.ts"
   },
   "keywords": [],
   "author": "Rasmus Kildevæld <rasmuskildevaeld@gmail.com>",

@@ -2,6 +2,7 @@
   "name": "form",
   "scripts": {
     "build": "pnpm -r run build",
-    "watch": "pnpm -r run watch"
+    "watch": "pnpm -r run watch",
+    "test": "pnpm -r run test"
   }
 }

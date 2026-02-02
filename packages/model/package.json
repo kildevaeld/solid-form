@@ -29,7 +29,7 @@
     "build": "tsup --config tsup.config.ts",
     "watch": "tsup --watch --config tsup.config.ts",
     "test": "vitest run",
-    "prepublish": "tsup --config tsup.config.ts"
+    "prepublish": "vitest run; tsup --config tsup.config.ts"
   },
   "keywords": [],
   "author": "Rasmus Kildevæld <rasmuskildevaeld@gmail.com>",

@@ -1,0 +1,49 @@
+# Example - Solid Form 2 Showcase
+
+A comprehensive example project demonstrating the capabilities of `@kildevaeld/solid-form2`.
+
+## Quick Start
+
+```bash
+cd packages/example
+pnpm install
+pnpm dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## What's Included
+
+### Features
+
+- ✅ Form creation and management
+- ✅ Field-level state management
+- ✅ Dynamic field arrays
+- ✅ Validation and error handling
+- ✅ Form submission with loading states
+- ✅ Reset functionality
+- ✅ Responsive, modern UI
+
+### Components
+
+- **UserForm**: Complete user registration example
+- **App**: Main application wrapper
+
+### Styling
+
+- Global styles with gradient background
+- Component-specific styling
+- Responsive design for mobile/tablet/desktop
+- Smooth transitions and interactions
+
+## Technologies
+
+- **Vite** - Next generation frontend build tool
+- **Solid.js** - A declarative, efficient, and extensible JavaScript library for building user interfaces
+- **TypeScript** - Typed superset of JavaScript
+- **@kildevaeld/solid-form2** - Form management for Solid.js
+
+## Learn More
+
+- [Solid.js Documentation](https://docs.solidjs.com/)
+- [Vite Documentation](https://vitejs.dev/)
