@@ -1,18 +1,18 @@
 import { Base, ChangeEvent, REACTIVE } from "./base.js";
 import { EventEmitter, Subscription } from "./emitter.js";
-import { Equallity, isEqual } from "./util.js";
+import { Equality, isEqual } from "./util.js";
 
 interface ValueEvents<T> {
   change: { prev: T | undefined; value: T | undefined };
 }
 
 export class Value<T> extends Base<T | undefined> {
-  [REACTIVE] = true;
+  public [REACTIVE] = true;
   #value: T | undefined;
-  #equal: Equallity<T>;
+  #equal: Equality<T>;
   #emitter: EventEmitter<ValueEvents<T>> = new EventEmitter();
 
-  constructor(value?: T, equal: Equallity<T> = isEqual) {
+  constructor(value?: T, equal: Equality<T> = isEqual) {
     super();
     this.#value = value;
     this.#equal = equal;

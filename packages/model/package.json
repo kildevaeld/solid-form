@@ -28,6 +28,7 @@
   "scripts": {
     "build": "tsup --config tsup.config.ts",
     "watch": "tsup --watch --config tsup.config.ts",
+    "test": "vitest run",
     "prepublish": "tsup --config tsup.config.ts"
   },
   "keywords": [],
@@ -38,6 +39,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "tsup": "^8.5.1"
+    "tsup": "^8.5.1",
+    "vitest": "^4.0.18"
   }
 }

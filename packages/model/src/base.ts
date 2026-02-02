@@ -19,6 +19,9 @@ export function isBase<T>(a: unknown): a is IEventEmitter<BaseEvent<T>> {
   return a && (a as any)[REACTIVE];
 }
 
-export function watch<T>(item: Base<T>) {
-  return item.subscribe(() => {});
+export function watch<T>(
+  item: Base<T>,
+  fn: (event: ChangeEvent<T>) => void,
+): Subscription {
+  return item.subscribe(fn);
 }

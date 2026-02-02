@@ -1,6 +1,6 @@
-import { Base, ChangeEvent } from "./base.js";
+import { Base, ChangeEvent, REACTIVE } from "./base.js";
 import { EventEmitter, IEventEmitter, Subscription } from "./emitter.js";
-import { Equallity } from "./util.js";
+import { Equality } from "./util.js";
 
 export interface ModelFields {}
 
@@ -23,13 +23,14 @@ export class Model<T extends { [key: string]: any }>
   extends Base<T>
   implements IEventEmitter<ModelEvents<T>>
 {
+  private [REACTIVE] = true;
   #emitter: EventEmitter<ModelEvents<T>> = new EventEmitter();
   #values: { [K in keyof T]?: T[K] };
-  #equal: Equallity<T[string]>;
+  #equal: Equality<T[string]>;
 
   constructor(
     values: Partial<T> = {},
-    equal: Equallity<T[string]> = (a, b) => a === b,
+    equal: Equality<T[string]> = (a, b) => a === b,
   ) {
     super();
     this.#values = values;
@@ -72,8 +73,8 @@ export class Model<T extends { [key: string]: any }>
     this.#emitter.off(event, listener);
   }
 
-  [Symbol.iterator]() {
-    return Object.entries(this.#values);
+  [Symbol.iterator](): IterableIterator<[keyof T, T[keyof T] | undefined]> {
+    return Object.entries(this.#values)[Symbol.iterator]();
   }
 
   entries() {

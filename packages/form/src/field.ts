@@ -1,4 +1,4 @@
-import { EventEmitter, type Equallity, isEqual } from "@kildevaeld/model";
+import { EventEmitter, type Equality, isEqual } from "@kildevaeld/model";
 import { type Validation, ValidationError } from "./validator.js";
 
 export interface FieldEvents<T> {
@@ -19,12 +19,12 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
   #value: T | undefined;
   #name: K;
   #errors: ValidationError[] = [];
-  #equal: Equallity<T>;
+  #equal: Equality<T>;
   #validations: Validation<T>[];
   #required: boolean = false;
   defaultValue: T | undefined;
 
-  constructor(options: FieldOptions<K, T>, equal: Equallity<T> = isEqual) {
+  constructor(options: FieldOptions<K, T>, equal: Equality<T> = isEqual) {
     super();
     this.#name = options.name;
     this.#value = options.value;
@@ -51,7 +51,7 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
   }
 
   reset() {
-    this.#value = this.defaultValue;
+    return this.set(this.defaultValue);
   }
 
   set(value: T | undefined, trigger: boolean = true) {
@@ -60,6 +60,9 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
     if (!this.#equal(prev, value) && trigger) {
       this.#errors.length = 0;
       this.emit("change", { prev, value });
+      return true;
+    } else {
+      return false;
     }
   }
 

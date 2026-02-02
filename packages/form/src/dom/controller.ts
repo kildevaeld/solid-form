@@ -1,6 +1,6 @@
 import { Field, FieldOptions } from "../field";
 import { Form } from "../form";
-import { getValue, setValue } from "./util";
+import { debounced, getValue, setValue } from "./util";
 
 export type ValidateMode = "change" | "blur" | "submit";
 
@@ -19,6 +19,7 @@ export class InputController<E extends HTMLElement, T> {
   #field: Field<string, T>;
   #validationMode: ValidateMode;
   #event: "input" | "change";
+  #validateField: () => void;
   constructor(
     el: E,
     options: ControllerOptions<T> & { event?: "input" | "change" },
@@ -27,6 +28,9 @@ export class InputController<E extends HTMLElement, T> {
     this.#field = options.field;
     this.#validationMode = options.validateMode ?? "change";
     this.#event = options.event ?? "input";
+    this.#validateField = debounced(() => {
+      this.#field.validate();
+    }, 200);
   }
 
   enable() {
