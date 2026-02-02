@@ -1,10 +1,10 @@
 import {
   createForm,
-  createField,
-  createFieldArray,
+  min, max
 } from "@kildevaeld/solid-form2";
-import { Show, For, createSignal } from "solid-js";
+import { Show, For, createSignal, createEffect, untrack } from "solid-js";
 import "../styles/UserForm.css";
+
 
 interface User {
   firstName: string;
@@ -20,15 +20,21 @@ export default function UserForm() {
   const [formData, setFormData] = createSignal<User | null>(null);
 
   const form = createForm<User>({
-    initialValues: {
+    defaultValues: () => ({
       firstName: "",
       lastName: "",
       email: "",
-      age: 18,
+      age: 22,
       bio: "",
       interests: [],
+    }),
+    validationMode: 'submit',
+    fields: {
+      age: {
+        validations: [min(18), max(99)]
+      }
     },
-    onSubmit: async (values) => {
+    submit: async (values) => {
       setFormData(values);
       setSubmitted(true);
       console.log("Form submitted:", values);
@@ -37,27 +43,30 @@ export default function UserForm() {
     },
   });
 
-  const firstNameField = createField(form, "firstName");
-  const lastNameField = createField(form, "lastName");
-  const emailField = createField(form, "email");
-  const ageField = createField(form, "age");
-  const bioField = createField(form, "bio");
-  const interestsField = createFieldArray(form, "interests");
+  // createEffect(() => {
+  //   console.log(form.values())
+  //   form.field('age').validate();
+  //   console.log(untrack(form.field('age').errors))
+  // })
 
-  const handleAddInterest = () => {
-    const interest = prompt("Enter an interest:");
-    if (interest) {
-      interestsField.push(interest);
-    }
-  };
 
-  const handleRemoveInterest = (index: number) => {
-    interestsField.remove(index);
-  };
+
+  
+
+  // const handleAddInterest = () => {
+  //   const interest = prompt("Enter an interest:");
+  //   if (interest) {
+  //     interestsField.push(interest);
+  //   }
+  // };
+
+  // const handleRemoveInterest = (index: number) => {
+  //   interestsField.remove(index);
+  // };
 
   return (
     <div class="user-form-container">
-      <form onSubmit={form.handleSubmit}>
+      <form onSubmit={form.submit}>
         <div class="form-section">
           <h3>Personal Information</h3>
 
@@ -67,14 +76,14 @@ export default function UserForm() {
               id="firstName"
               type="text"
               placeholder="John"
-              value={firstNameField.value() ?? ""}
-              onChange={(e) => firstNameField.setValue(e.currentTarget.value)}
-              onBlur={() => firstNameField.validate()}
+              ref={form.field('firstName').control}
               class="form-input"
             />
-            <Show when={firstNameField.error()}>
-              <p class="error">{firstNameField.error()}</p>
-            </Show>
+            <For each={form.field('firstName').errors()}>
+              {e => {
+                return <p class="error">{e.message}</p>
+              }}
+            </For>
           </div>
 
           <div class="form-group">
@@ -83,14 +92,12 @@ export default function UserForm() {
               id="lastName"
               type="text"
               placeholder="Doe"
-              value={lastNameField.value() ?? ""}
-              onChange={(e) => lastNameField.setValue(e.currentTarget.value)}
-              onBlur={() => lastNameField.validate()}
+              ref={form.field('lastName').control}
               class="form-input"
             />
-            <Show when={lastNameField.error()}>
+            {/* <Show when={lastNameField.error()}>
               <p class="error">{lastNameField.error()}</p>
-            </Show>
+            </Show> */}
           </div>
 
           <div class="form-group">
@@ -99,14 +106,12 @@ export default function UserForm() {
               id="email"
               type="email"
               placeholder="john@example.com"
-              value={emailField.value() ?? ""}
-              onChange={(e) => emailField.setValue(e.currentTarget.value)}
-              onBlur={() => emailField.validate()}
+              ref={form.field('email').control}
               class="form-input"
             />
-            <Show when={emailField.error()}>
+            {/* <Show when={emailField.error()}>
               <p class="error">{emailField.error()}</p>
-            </Show>
+            </Show> */}
           </div>
 
           <div class="form-group">
@@ -115,19 +120,22 @@ export default function UserForm() {
               id="age"
               type="number"
               placeholder="18"
-              value={ageField.value() ?? ""}
-              onChange={(e) =>
-                ageField.setValue(parseInt(e.currentTarget.value))
-              }
-              onBlur={() => ageField.validate()}
+              // value={ageField.value() ?? ""}
+              // onChange={(e) =>
+              //   ageField.setValue(parseInt(e.currentTarget.value))
+              // }
+              // onBlur={() => ageField.validate()}
+              ref={form.field('age').control}
               class="form-input"
             />
-            <Show when={ageField.error()}>
-              <p class="error">{ageField.error()}</p>
-            </Show>
+            <For each={form.field('age').errors()}>
+              {e => {
+                return <p class="error">{e.message}</p>
+              }}
+            </For>
           </div>
 
-          <div class="form-group">
+          {/* <div class="form-group">
             <label for="bio">Bio</label>
             <textarea
               id="bio"
@@ -139,10 +147,10 @@ export default function UserForm() {
             <Show when={bioField.error()}>
               <p class="error">{bioField.error()}</p>
             </Show>
-          </div>
+          </div> */}
         </div>
 
-        <div class="form-section">
+        {/* <div class="form-section">
           <h3>Interests</h3>
           <div class="interests-list">
             <For each={interestsField.value()}>
@@ -167,7 +175,7 @@ export default function UserForm() {
           >
             Add Interest
           </button>
-        </div>
+        </div> */}
 
         <div class="form-actions">
           <button
@@ -186,11 +194,11 @@ export default function UserForm() {
           </button>
         </div>
 
-        <Show when={form.error()}>
+        {/* <Show when={form.error()}>
           <div class="form-error">
             <p>{form.error()}</p>
           </div>
-        </Show>
+        </Show> */}
       </form>
 
       <Show when={submitted() && formData()}>

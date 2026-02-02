@@ -165,9 +165,9 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
       }
     }
 
-    if (changed) {
-      this.emit("change", {} as any);
-    }
+    //if (changed) {
+    this.emit("change", {} as any);
+    //}
 
     this.#setStatus("idle");
   }

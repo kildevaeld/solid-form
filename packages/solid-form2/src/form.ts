@@ -2,12 +2,13 @@ import { Form, type FormFields, type FormOptions } from "@kildevaeld/form";
 import { Accessor, batch, createEffect, onCleanup } from "solid-js";
 import { createField, FieldApi } from "./field.js";
 import { createTriggerCache } from "@solid-primitives/trigger";
+import { ValidateMode } from "@kildevaeld/form/dom";
 
 export interface CreateFormOptions<T extends FormFields> {
   defaultValues?: Accessor<Partial<T> | undefined>;
   fields?: Omit<FormOptions<T>["fields"], "value">;
   submit?: (values: T) => Promise<void> | void;
-  validationMode?: "onChange" | "onBlur" | "onSubmit";
+  validationMode?: ValidateMode;
 }
 
 export function createForm<T extends FormFields>(
@@ -59,16 +60,28 @@ export function createForm<T extends FormFields>(
     field<K extends keyof T>(name: K) {
       let fieldApi = fields.get(name);
       if (!fieldApi) {
-        fieldApi = createField(form.field(name));
+        fieldApi = createField(
+          form.field(name),
+          options.validationMode ?? "change",
+        );
         fields.set(name, fieldApi);
       }
       return fields.get(name) as FieldApi<T[K]>;
     },
     async submit(e: SubmitEvent) {
       e.preventDefault();
+      if (options.validationMode === "submit") {
+        await form.validate();
+        if (!form.isValid) {
+          return;
+        }
+      }
       await form.submit(async (values) => {
         await options.submit?.(values);
       });
+    },
+    reset() {
+      form.reset();
     },
     validate() {
       return form.validate();

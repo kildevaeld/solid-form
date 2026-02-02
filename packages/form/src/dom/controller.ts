@@ -31,6 +31,8 @@ export class InputController<E extends HTMLElement, T> {
     this.#validateField = debounced(() => {
       this.#field.validate();
     }, 200);
+
+    setValue(el, options.field.value);
   }
 
   enable() {
@@ -56,13 +58,13 @@ export class InputController<E extends HTMLElement, T> {
     this.#field.on("change", this.#onFieldChange);
 
     if (this.#validationMode == "change") {
-      this.#field.validate();
+      this.#validateField();
     }
   };
 
   #onBlur = (e: Event) => {
     if (this.#validationMode == "blur") {
-      this.#field.validate();
+      this.#validateField();
     }
   };
 
