@@ -32,6 +32,9 @@ export default function UserForm() {
     fields: {
       age: {
         validations: [min(18), max(99)]
+      },
+      firstName: {
+        required: true
       }
     },
     submit: async (values) => {

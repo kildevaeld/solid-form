@@ -28,9 +28,12 @@ export class InputController<E extends HTMLElement, T> {
     this.#field = options.field;
     this.#validationMode = options.validateMode ?? "change";
     this.#event = options.event ?? "input";
-    this.#validateField = debounced(() => {
-      this.#field.validate();
-    }, 200);
+    // this.#validateField = debounced(() => {
+    //   this.#field.validate();
+    // }, 200);
+    this.#validateField = () => {
+      return this.#field.validate();
+    };
 
     setValue(el, options.field.value);
   }

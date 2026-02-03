@@ -1,6 +1,7 @@
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { createRoot, createSignal, createEffect } from "solid-js";
 import { createForm } from "./form";
+import { createAsyncRoot } from "./util";
 
 interface TestFormFields {
   username: string;
@@ -9,6 +10,8 @@ interface TestFormFields {
 }
 
 describe("createForm", () => {
+
+
   test("should initialize with default values", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
@@ -58,6 +61,8 @@ describe("createForm", () => {
             username: { required: true },
           },
         });
+
+        form.validate();
 
         // Initially invalid because username is required but empty
         expect(form.form.isValid).toBe(false);
@@ -217,8 +222,7 @@ describe("createForm", () => {
   });
 
   test("should validate form programmatically", async () => {
-    await new Promise<void>((resolve) => {
-      createRoot(async (dispose) => {
+    await createAsyncRoot(async () => {
         const form = createForm<TestFormFields>({
           fields: {
             username: { required: true },
@@ -235,9 +239,8 @@ describe("createForm", () => {
         const isValidNow = await form.validate();
         expect(isValidNow).toBe(true);
 
-        dispose();
-        resolve();
-      });
+        // dispose();
+        
     });
   });
 

@@ -1,12 +1,15 @@
-import { describe, test, expect, beforeEach, vi } from "vitest";
-import { createRoot, createEffect } from "solid-js";
-import { createField } from "./field";
+import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { createRoot, createEffect, createSignal } from "solid-js";
+import { createField } from "./field.js";
 import { Field } from "@kildevaeld/form";
+import { createAsyncRoot } from "./util.js";
 
 interface TestFields {
   username: string;
   email: string;
 }
+
+
 
 describe("createField", () => {
   test("should create field with initial value", async () => {
@@ -125,6 +128,16 @@ describe("createField", () => {
 });
 
 describe("createField control directive", () => {
+
+    // beforeEach(() => {
+    //   vi.useFakeTimers();
+    // })
+  
+    // afterEach(() => {
+    //   vi.useRealTimers()
+    // })
+  
+
   test("should bind input element", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
@@ -197,8 +210,7 @@ describe("createField control directive", () => {
   });
 
   test("should handle validation mode 'change'", async () => {
-    await new Promise<void>((resolve) => {
-      createRoot(async (dispose) => {
+    await createAsyncRoot(async () => {
         const baseField = new Field<"username", string>({ name: "username", required: true });
         const field = createField(baseField, "change");
 
@@ -210,29 +222,28 @@ describe("createField control directive", () => {
 
         // Trigger change event with empty value
         input.value = "";
-        input.dispatchEvent(new Event("change", { bubbles: true }));
+        input.dispatchEvent(new Event("input", { bubbles: true }));
 
         // Give it time to validate
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Should have errors
         expect(baseField.errors.length).toBeGreaterThan(0);
 
         // Now add a value
         input.value = "valid";
-        input.dispatchEvent(new Event("change", { bubbles: true }));
+        input.dispatchEvent(new Event("input", { bubbles: true }));
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        // await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Should have no errors
         expect(baseField.errors.length).toBe(0);
 
         // Cleanup
         document.body.removeChild(input);
-        dispose();
-        resolve();
+        // dispose();
+        
       });
-    });
   });
 
   test("should update input when field value changes", async () => {

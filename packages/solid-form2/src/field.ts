@@ -18,8 +18,8 @@ export interface FieldApi<T> {
   validate(): Promise<boolean>;
 }
 
-export function createField<K extends keyof T, T extends FormFields>(
-  field: Field<K, T[K]>,
+export function createField<K, T>(
+  field: Field<K, T>,
   validationMode: ValidateMode,
 ) {
   const [track, dirty] = createTriggerCache<"$value" | "$errors">();
@@ -36,9 +36,15 @@ export function createField<K extends keyof T, T extends FormFields>(
     }),
   );
 
+  onCleanup(
+    field.on("reset", () => {
+      dirty("$errors");
+    }),
+  );
+
   return {
     name: field.name,
-    setValue(value: T[K]) {
+    setValue(value: T) {
       field.set(value);
     },
     validate() {
@@ -60,7 +66,7 @@ export function createField<K extends keyof T, T extends FormFields>(
   };
 }
 
-export function createControl<T extends FormFields>(
+export function createControl<T>(
   field: Field<string, T>,
   validateMode: ValidateMode,
 ) {

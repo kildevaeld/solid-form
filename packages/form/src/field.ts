@@ -6,6 +6,7 @@ export interface FieldEvents<T> {
   validate:
     | { status: "valid" }
     | { status: "invalid"; errors: ValidationError[] };
+  reset: {};
 }
 
 export interface FieldOptions<K, T> {
@@ -51,7 +52,10 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
   }
 
   reset() {
-    return this.set(this.defaultValue);
+    const ret = this.set(this.defaultValue);
+    this.#errors.length = 0;
+    this.emit("reset", {});
+    return ret;
   }
 
   set(value: T | undefined, trigger: boolean = true) {
@@ -77,7 +81,7 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
   async validate(trigger = true) {
     this.#errors.length = 0;
 
-    if (this.#value == undefined) {
+    if (this.#value == undefined || this.#value == "") {
       if (this.#required) {
         this.#errors.push(new ValidationError("Required"));
       }
@@ -89,6 +93,7 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
           if (e instanceof ValidationError) {
             this.#errors.push(e);
           } else {
+            // console.log("ERROR", e);
             throw e;
           }
         }

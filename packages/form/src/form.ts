@@ -132,6 +132,8 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
     );
 
     this.#setStatus("idle");
+
+    return !failed;
   }
 
   async submit(func: (value: T) => Promise<void> | void) {
@@ -165,9 +167,9 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
       }
     }
 
-    //if (changed) {
-    this.emit("change", {} as any);
-    //}
+    if (changed) {
+      this.emit("change", {} as any);
+    }
 
     this.#setStatus("idle");
   }
