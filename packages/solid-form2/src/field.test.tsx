@@ -9,13 +9,14 @@ interface TestFields {
   email: string;
 }
 
-
-
 describe("createField", () => {
   test("should create field with initial value", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
-        const baseField = new Field<"username", string>({ name: "username", value: "initial" });
+        const baseField = new Field<"username", string>({
+          name: "username",
+          value: "initial",
+        });
         const field = createField(baseField, "change");
 
         // Access value directly from the underlying field
@@ -48,7 +49,10 @@ describe("createField", () => {
   test("should track dirty state", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
-        const baseField = new Field<"username", string>({ name: "username", value: "initial" });
+        const baseField = new Field<"username", string>({
+          name: "username",
+          value: "initial",
+        });
         const field = createField(baseField, "change");
 
         expect(baseField.isDirty).toBe(false);
@@ -68,7 +72,10 @@ describe("createField", () => {
   test("should validate field", async () => {
     await new Promise<void>((resolve) => {
       createRoot(async (dispose) => {
-        const baseField = new Field<"username", string>({ name: "username", required: true });
+        const baseField = new Field<"username", string>({
+          name: "username",
+          required: true,
+        });
         const field = createField(baseField, "change");
 
         const isValid = await field.validate();
@@ -89,7 +96,10 @@ describe("createField", () => {
   test("should track errors reactively", async () => {
     await new Promise<void>((resolve) => {
       createRoot(async (dispose) => {
-        const baseField = new Field<"username", string>({ name: "username", required: true });
+        const baseField = new Field<"username", string>({
+          name: "username",
+          required: true,
+        });
         const field = createField(baseField, "change");
 
         expect(baseField.errors).toEqual([]);
@@ -109,7 +119,10 @@ describe("createField", () => {
   test("should react to field changes", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
-        const baseField = new Field<"username", string>({ name: "username", value: "initial" });
+        const baseField = new Field<"username", string>({
+          name: "username",
+          value: "initial",
+        });
         const field = createField(baseField, "change");
 
         expect(baseField.value).toBe("initial");
@@ -128,16 +141,6 @@ describe("createField", () => {
 });
 
 describe("createField control directive", () => {
-
-    // beforeEach(() => {
-    //   vi.useFakeTimers();
-    // })
-  
-    // afterEach(() => {
-    //   vi.useRealTimers()
-    // })
-  
-
   test("should bind input element", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
@@ -211,45 +214,50 @@ describe("createField control directive", () => {
 
   test("should handle validation mode 'change'", async () => {
     await createAsyncRoot(async () => {
-        const baseField = new Field<"username", string>({ name: "username", required: true });
-        const field = createField(baseField, "change");
-
-        const input = document.createElement("input");
-        input.type = "text";
-        document.body.appendChild(input);
-
-        field.control(input);
-
-        // Trigger change event with empty value
-        input.value = "";
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-
-        // Give it time to validate
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
-        // Should have errors
-        expect(baseField.errors.length).toBeGreaterThan(0);
-
-        // Now add a value
-        input.value = "valid";
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-
-        // await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Should have no errors
-        expect(baseField.errors.length).toBe(0);
-
-        // Cleanup
-        document.body.removeChild(input);
-        // dispose();
-        
+      const baseField = new Field<"username", string>({
+        name: "username",
+        required: true,
       });
+      const field = createField(baseField, "change");
+
+      const input = document.createElement("input");
+      input.type = "text";
+      document.body.appendChild(input);
+
+      field.control(input);
+
+      // Trigger change event with empty value
+      input.value = "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+
+      // Give it time to validate
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Should have errors
+      expect(baseField.errors.length).toBeGreaterThan(0);
+
+      // Now add a value
+      input.value = "valid";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+
+      // await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Should have no errors
+      expect(baseField.errors.length).toBe(0);
+
+      // Cleanup
+      document.body.removeChild(input);
+      // dispose();
+    });
   });
 
   test("should update input when field value changes", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
-        const baseField = new Field<"username", string>({ name: "username", value: "initial" });
+        const baseField = new Field<"username", string>({
+          name: "username",
+          value: "initial",
+        });
         const field = createField(baseField, "change");
 
         const input = document.createElement("input");
@@ -266,7 +274,7 @@ describe("createField control directive", () => {
           // Input should update
           setTimeout(() => {
             expect(input.value).toBe("updated");
-            
+
             // Cleanup
             document.body.removeChild(input);
             dispose();

@@ -1,5 +1,11 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-import { createRoot, createSignal, createEffect } from "solid-js";
+import {
+  createRoot,
+  createSignal,
+  createEffect,
+  getOwner,
+  runWithOwner,
+} from "solid-js";
 import { createForm } from "./form";
 import { createAsyncRoot } from "./util";
 
@@ -10,8 +16,6 @@ interface TestFormFields {
 }
 
 describe("createForm", () => {
-
-
   test("should initialize with default values", async () => {
     await new Promise<void>((resolve) => {
       createRoot((dispose) => {
@@ -43,7 +47,7 @@ describe("createForm", () => {
 
         const usernameField = form.field("username");
         expect(usernameField).toBeDefined();
-        
+
         // Access directly from underlying field
         expect(form.form.field("username").value).toBeUndefined();
 
@@ -136,30 +140,25 @@ describe("createForm", () => {
   test("should handle form submission", async () => {
     const submitHandler = vi.fn();
 
-    await new Promise<void>((resolve) => {
-      createRoot(async (dispose) => {
-        const form = createForm<TestFormFields>({
-          submit: submitHandler,
-        });
+    await createAsyncRoot(async (dispose) => {
+      const form = createForm<TestFormFields>({
+        submit: submitHandler,
+      });
 
-        // Set values
-        form.field("username").setValue("testuser");
-        form.field("email").setValue("test@example.com");
+      // Set values
+      form.field("username").setValue("testuser");
+      form.field("email").setValue("test@example.com");
 
-        // Create a mock event
-        const event = new Event("submit", { cancelable: true }) as SubmitEvent;
-        const preventDefaultSpy = vi.spyOn(event, "preventDefault");
+      // Create a mock event
+      const event = new Event("submit", { cancelable: true }) as SubmitEvent;
+      const preventDefaultSpy = vi.spyOn(event, "preventDefault");
 
-        await form.submit(event);
+      await form.submit(event);
 
-        expect(preventDefaultSpy).toHaveBeenCalled();
-        expect(submitHandler).toHaveBeenCalledWith({
-          username: "testuser",
-          email: "test@example.com",
-        });
-
-        dispose();
-        resolve();
+      expect(preventDefaultSpy).toHaveBeenCalled();
+      expect(submitHandler).toHaveBeenCalledWith({
+        username: "testuser",
+        email: "test@example.com",
       });
     });
   });
@@ -167,38 +166,35 @@ describe("createForm", () => {
   test("should validate on submit when validationMode is submit", async () => {
     const submitHandler = vi.fn();
 
-    await new Promise<void>((resolve) => {
-      createRoot(async (dispose) => {
-        const form = createForm<TestFormFields>({
-          fields: {
-            username: { required: true },
-          },
-          submit: submitHandler,
-          validationMode: "submit",
-        });
+    await createAsyncRoot(async (owner) => {
+      const form = createForm<TestFormFields>({
+        fields: {
+          username: { required: true },
+        },
+        submit: submitHandler,
+        validationMode: "submit",
+      });
 
-        // Create a mock event
-        const event = new Event("submit", { cancelable: true }) as SubmitEvent;
+      // Create a mock event
+      const event = new Event("submit", { cancelable: true }) as SubmitEvent;
 
-        // Submit without setting required field
-        await form.submit(event);
+      // Submit without setting required field
+      await form.submit(event);
 
-        // Should not call submit handler because validation failed
-        expect(submitHandler).not.toHaveBeenCalled();
+      // Should not call submit handler because validation failed
+      expect(submitHandler).not.toHaveBeenCalled();
 
+      await runWithOwner(owner, async () => {
         // Set required field
         form.field("username").setValue("testuser");
 
         // Submit again
         await form.submit(event);
+      });
 
-        // Should call submit handler now
-        expect(submitHandler).toHaveBeenCalledWith({
-          username: "testuser",
-        });
-
-        dispose();
-        resolve();
+      // Should call submit handler now
+      expect(submitHandler).toHaveBeenCalledWith({
+        username: "testuser",
       });
     });
   });
@@ -218,29 +214,6 @@ describe("createForm", () => {
         dispose();
         resolve();
       });
-    });
-  });
-
-  test("should validate form programmatically", async () => {
-    await createAsyncRoot(async () => {
-        const form = createForm<TestFormFields>({
-          fields: {
-            username: { required: true },
-            email: { required: true },
-          },
-        });
-
-        const isValid = await form.validate();
-        expect(isValid).toBe(false);
-
-        form.field("username").setValue("testuser");
-        form.field("email").setValue("test@example.com");
-
-        const isValidNow = await form.validate();
-        expect(isValidNow).toBe(true);
-
-        // dispose();
-        
     });
   });
 
@@ -277,6 +250,28 @@ describe("createForm", () => {
 
         dispose();
         resolve();
+      });
+    });
+  });
+
+  test("should validate form programmatically", async () => {
+    await createAsyncRoot(async (owner) => {
+      const form = createForm<TestFormFields>({
+        fields: {
+          username: { required: true },
+          email: { required: true },
+        },
+      });
+
+      const isValid = await form.validate();
+      expect(isValid).toBe(false);
+
+      runWithOwner(owner, async () => {
+        form.field("username").setValue("testuser");
+        form.field("email").setValue("test@example.com");
+
+        const isValidNow = await form.validate();
+        expect(isValidNow).toBe(true);
       });
     });
   });

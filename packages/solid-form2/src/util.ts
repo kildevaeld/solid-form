@@ -1,12 +1,24 @@
-import { createEffect, createRoot, createSignal } from "solid-js";
+import {
+  createEffect,
+  createRoot,
+  createSignal,
+  getOwner,
+  Owner,
+  runWithOwner,
+} from "solid-js";
 
-export function createAsyncRoot(testFn: () => Promise<void>) {
+export function createAsyncRoot(testFn: (owner: Owner) => Promise<void>) {
   return new Promise((resolve, reject) => {
     createRoot((dispose) => {
       const [resource, setResource] = createSignal({ state: "STARTED" });
 
+      const owner = getOwner()!;
       // run `testFn` as a promise, and update the `resource` signal accordingly
-      Promise.resolve((async () => testFn())()) // force testFn to be async even if it isn't
+      Promise.resolve(
+        (async () => {
+          return runWithOwner(owner, () => testFn(owner));
+        })(),
+      ) // force testFn to be async even if it isn't
         .catch((error) => setResource({ state: "ERRORED", error }))
         .then((v) => setResource({ state: "FINISHED", value: v }));
 
