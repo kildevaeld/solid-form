@@ -23,7 +23,6 @@ export class Model<T extends { [key: string]: any }>
   extends Base<T>
   implements IEventEmitter<ModelEvents<T>>
 {
-  private [REACTIVE] = true;
   #emitter: EventEmitter<ModelEvents<T>> = new EventEmitter();
   #values: { [K in keyof T]?: T[K] };
   #equal: Equality<T[string]>;

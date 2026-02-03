@@ -5,15 +5,17 @@ export interface ChangeEvent<T> {
   value: T;
 }
 
+export const REACTIVE = Symbol("MODEL_REACTIVE");
+
 export abstract class Base<T> {
+  [REACTIVE] = true;
+  constructor() {}
   abstract subscribe(observer: (value: ChangeEvent<T>) => void): Subscription;
 }
 
 export interface BaseEvent<T> {
   change: ChangeEvent<T>;
 }
-
-export const REACTIVE = Symbol("MODEL_REACTIVE");
 
 export function isBase<T>(a: unknown): a is IEventEmitter<BaseEvent<T>> {
   return a && (a as any)[REACTIVE];
