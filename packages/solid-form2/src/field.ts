@@ -6,6 +6,7 @@ import {
 } from "@kildevaeld/form/dom";
 import { createTriggerCache } from "@solid-primitives/trigger";
 import { Accessor, onCleanup } from "solid-js";
+import { useEvents } from "./hooks";
 
 export interface FieldApi<T> {
   value: Accessor<T | undefined>;
@@ -24,28 +25,22 @@ export function createField<K, T>(
 ) {
   const [track, dirty] = createTriggerCache<"$value" | "$errors">();
 
-  onCleanup(
-    field.on("change", () => {
+  useEvents(field, {
+    change: () => {
       dirty("$value");
-    }),
-  );
-
-  onCleanup(
-    field.on("validate", () => {
+    },
+    validate: () => {
       dirty("$errors");
-    }),
-  );
-
-  onCleanup(
-    field.on("reset", () => {
+    },
+    reset: () => {
       dirty("$errors");
-    }),
-  );
+    },
+  });
 
   return {
     name: field.name,
     setValue(value: T) {
-      field.set(value);
+      field.setValue(value);
     },
     validate() {
       return field.validate();

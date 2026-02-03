@@ -128,7 +128,7 @@ describe("createField", () => {
         expect(baseField.value).toBe("initial");
 
         // Change through base field
-        baseField.set("changed");
+        baseField.setValue("changed");
 
         // The value should update
         expect(baseField.value).toBe("changed");

@@ -1,15 +1,13 @@
-import { Base, Model, ModelFields } from "@kildevaeld/model";
+import type { Model, ModelFields } from "@kildevaeld/model";
 import { createTriggerCache } from "@solid-primitives/trigger";
-import { onCleanup } from "solid-js/types/server/reactive.js";
+import { useEvent } from "./hooks";
 
 export function createModel<T extends ModelFields>(model: Model<T>) {
   const [track, dirty] = createTriggerCache();
 
-  onCleanup(
-    model.on("change", (e) => {
-      dirty(e.key);
-    }),
-  );
+  useEvent(model, "change", (e) => {
+    dirty(e.key);
+  });
 
   return {
     get<K extends keyof T>(key: K) {

@@ -1,6 +1,6 @@
 export type Subscription = () => void;
 
-export interface IEventEmitter<T extends Record<string, any>> {
+export interface IEventEmitter<T> {
   on<K extends keyof T>(
     event: K,
     listener: (payload: T[K]) => void,
@@ -9,9 +9,7 @@ export interface IEventEmitter<T extends Record<string, any>> {
   off<K extends keyof T>(event: K, listener: (payload: T[K]) => void): void;
 }
 
-export class EventEmitter<
-  T extends Record<string, any>,
-> implements IEventEmitter<T> {
+export class EventEmitter<T> implements IEventEmitter<T> {
   private listeners: {
     [K in keyof T]?: Array<(payload: T[K]) => void>;
   } = {};

@@ -1,12 +1,31 @@
-import { IEventEmitter } from "@kildevaeld/model";
-import { Accessor, createEffect, onCleanup } from "solid-js";
+import type { IEventEmitter, Subscription } from "@kildevaeld/model";
+import { onCleanup } from "solid-js";
 
-export function useEvent<
-  T extends IEventEmitter<E>,
-  E extends Record<string, unknown>,
-  K extends keyof E = keyof E,
->(emitter: T, event: K, handler: (payload: E[K]) => void) {
-  createEffect(() => {
-    onCleanup(emitter.on(event, handler));
+export function useEvent<E, K extends keyof E = keyof E>(
+  emitter: IEventEmitter<E>,
+  event: K,
+  handler: (payload: E[K]) => void,
+) {
+  onCleanup(emitter.on(event, handler));
+}
+
+export type EventOptions<T> = {
+  [K in keyof T]?: (payload: T[K]) => void;
+};
+
+export function useEvents<E>(
+  emitter: IEventEmitter<E>,
+  options: EventOptions<E>,
+) {
+  const subscriptions: Subscription[] = [];
+  for (const k in options) {
+    const v = options[k] as (payload: E[keyof E]) => void;
+    subscriptions.push(emitter.on(k, v));
+  }
+
+  onCleanup(() => {
+    for (const subsciption of subscriptions) {
+      subsciption();
+    }
   });
 }

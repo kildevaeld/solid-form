@@ -63,27 +63,14 @@ describe("Field", () => {
   describe("set method", () => {
     test("should return true when value changes", () => {
       const field = new Field({ name: "test", value: "initial" });
-      const changed = field.set("new");
+      const changed = field.setValue("new");
       expect(changed).toBe(true);
     });
 
     test("should return false when value doesn't change", () => {
       const field = new Field({ name: "test", value: "same" });
-      const changed = field.set("same");
+      const changed = field.setValue("same");
       expect(changed).toBe(false);
-    });
-
-    test("should not trigger change event when trigger is false", () => {
-      const field = new Field({ name: "test", value: "initial" });
-      let eventTriggered = false;
-      field.on("change", () => {
-        eventTriggered = true;
-      });
-
-      field.set("new", false);
-
-      expect(eventTriggered).toBe(false);
-      expect(field.value).toBe("new");
     });
 
     test("should clear errors when value changes", () => {
@@ -91,7 +78,7 @@ describe("Field", () => {
       field.validate();
       expect(field.errors.length).toBeGreaterThan(0);
 
-      field.set("value");
+      field.setValue("value");
       expect(field.errors.length).toBe(0);
     });
   });

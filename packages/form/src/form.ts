@@ -180,7 +180,7 @@ export class Form<T extends FormFields> extends EventEmitter<FormEvents<T>> {
     this.#validationErrors = {};
     let changed = false;
     for (const key in this.#fields) {
-      if (this.#fields[key]?.set(void 0)) {
+      if (this.#fields[key]?.setValue(void 0)) {
         changed = true;
       }
     }

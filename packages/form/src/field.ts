@@ -1,4 +1,11 @@
-import { EventEmitter, type Equality, isEqual } from "@kildevaeld/model";
+import {
+  EventEmitter,
+  type Equality,
+  isEqual,
+  Model,
+  Base,
+  Collection,
+} from "@kildevaeld/model";
 import { type Validation, ValidationError } from "./validator.js";
 
 export interface FieldEvents<T> {
@@ -48,20 +55,19 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
   }
 
   set value(value: T | undefined) {
-    this.set(value);
+    this.setValue(value);
   }
 
   reset() {
-    const ret = this.set(this.defaultValue);
+    const ret = this.setValue(this.defaultValue);
     this.#errors.length = 0;
     this.emit("reset", {});
     return ret;
   }
 
-  set(value: T | undefined, trigger: boolean = true) {
+  setValue(value: T | undefined) {
     const prev = this.#value;
-    this.#value = value;
-    if (!this.#equal(prev, value) && trigger) {
+    if (this.#setValue(value)) {
       this.#errors.length = 0;
       this.emit("change", { prev, value });
       return true;
@@ -93,7 +99,6 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
           if (e instanceof ValidationError) {
             this.#errors.push(e);
           } else {
-            // console.log("ERROR", e);
             throw e;
           }
         }
@@ -110,4 +115,28 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
 
     return !this.#errors.length;
   }
+
+  #setValue(value: T | undefined) {
+    const equal = this.#equal(this.#value, value);
+
+    if (this.#value && this.#value instanceof Model) {
+      this.#value.off("change", this.#onValueChange);
+    } else if (this.#value && this.#value instanceof Collection) {
+      this.#value.off("change", this.#onValueChange);
+    }
+
+    if (value && value instanceof Model) {
+      value.on("change", this.#onValueChange);
+    } else if (value && value instanceof Collection) {
+      value.on("change", this.#onValueChange);
+    }
+
+    this.#value = value;
+
+    return !equal;
+  }
+
+  #onValueChange = () => {
+    this.emit("change", { value: this.value, prev: void 0 });
+  };
 }

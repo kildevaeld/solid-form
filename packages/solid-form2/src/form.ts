@@ -1,8 +1,9 @@
 import { Form, type FormFields, type FormOptions } from "@kildevaeld/form";
 import { Accessor, batch, createEffect, onCleanup } from "solid-js";
-import { createField, FieldApi } from "./field.js";
+import { createField, FieldApi } from "./field";
 import { createTriggerCache } from "@solid-primitives/trigger";
 import { ValidateMode } from "@kildevaeld/form/dom";
+import { useEvents } from "./hooks";
 
 export interface CreateFormOptions<T extends FormFields> {
   defaultValues?: Accessor<Partial<T> | undefined>;
@@ -29,29 +30,25 @@ export function createForm<T extends FormFields>(
     dirty: form.isDirty,
   };
 
-  createEffect(() => {
-    onCleanup(
-      form.on("change", () => {
-        dirty("$value");
-      }),
-    );
-    onCleanup(
-      form.on("statusChange", () => {
-        batch(() => {
-          dirty("$status");
-          if (form.status === "idle") {
-            if (cache.valid !== form.isValid) {
-              cache.valid = form.isValid;
-              dirty("$valid");
-            }
-            if (cache.dirty !== form.isDirty) {
-              cache.dirty = form.isDirty;
-              dirty("$dirty");
-            }
+  useEvents(form, {
+    change: () => {
+      dirty("$value");
+    },
+    statusChange: () => {
+      batch(() => {
+        dirty("$status");
+        if (form.status === "idle") {
+          if (cache.valid !== form.isValid) {
+            cache.valid = form.isValid;
+            dirty("$valid");
           }
-        });
-      }),
-    );
+          if (cache.dirty !== form.isDirty) {
+            cache.dirty = form.isDirty;
+            dirty("$dirty");
+          }
+        }
+      });
+    },
   });
 
   const fields = new Map<keyof T, FieldApi<T[keyof T]>>();

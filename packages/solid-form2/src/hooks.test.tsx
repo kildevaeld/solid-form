@@ -1,6 +1,6 @@
 import { describe, test, expect, vi } from "vitest";
 import { createRoot, createEffect } from "solid-js";
-import { useEvent } from "./hooks";
+import { useEvent } from "./hooks.js";
 import { EventEmitter } from "@kildevaeld/model";
 
 interface TestEvents {
@@ -13,12 +13,14 @@ describe("useEvent", () => {
   test("should subscribe to event on creation", async () => {
     await new Promise<void>((resolve) => {
       const emitter = new EventEmitter<TestEvents>();
-      const handler = vi.fn();
+      const handler = vi.fn() as (
+        payload: TestEvents[keyof TestEvents],
+      ) => void;
 
       createRoot((dispose) => {
         // useEvent must be called inside createEffect since it uses onCleanup
         createEffect(() => {
-          useEvent(emitter, "change", handler);
+          useEvent<TestEvents>(emitter, "change", handler);
         });
 
         // Give effect time to run
@@ -43,7 +45,7 @@ describe("useEvent", () => {
 
       createRoot((dispose) => {
         createEffect(() => {
-          useEvent(emitter, "change", handler);
+          useEvent<TestEvents>(emitter, "change", handler);
         });
 
         setTimeout(() => {
@@ -71,7 +73,7 @@ describe("useEvent", () => {
 
       createRoot((dispose) => {
         createEffect(() => {
-          useEvent(emitter, "change", handler);
+          useEvent<TestEvents>(emitter, "change", handler);
         });
 
         setTimeout(() => {
@@ -102,9 +104,9 @@ describe("useEvent", () => {
 
       createRoot((dispose) => {
         createEffect(() => {
-          useEvent(emitter, "change", changeHandler);
-          useEvent(emitter, "save", saveHandler);
-          useEvent(emitter, "delete", deleteHandler);
+          useEvent<TestEvents>(emitter, "change", changeHandler);
+          useEvent<TestEvents>(emitter, "save", saveHandler);
+          useEvent<TestEvents>(emitter, "delete", deleteHandler);
         });
 
         setTimeout(() => {
@@ -130,7 +132,7 @@ describe("useEvent", () => {
 
       createRoot((dispose) => {
         createEffect(() => {
-          useEvent(emitter, "delete", handler);
+          useEvent<TestEvents>(emitter, "delete", handler);
         });
 
         setTimeout(() => {
@@ -153,8 +155,8 @@ describe("useEvent", () => {
 
       createRoot((dispose) => {
         createEffect(() => {
-          useEvent(emitter, "change", handler1);
-          useEvent(emitter, "change", handler2);
+          useEvent<TestEvents>(emitter, "change", handler1);
+          useEvent<TestEvents>(emitter, "change", handler2);
         });
 
         setTimeout(() => {
@@ -177,7 +179,7 @@ describe("useEvent", () => {
 
       createRoot((dispose) => {
         createEffect(() => {
-          useEvent(emitter, "change", handler);
+          useEvent<TestEvents>(emitter, "change", handler);
         });
 
         setTimeout(() => {
