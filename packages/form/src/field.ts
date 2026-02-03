@@ -35,11 +35,11 @@ export class Field<K, T> extends EventEmitter<FieldEvents<T>> {
   constructor(options: FieldOptions<K, T>, equal: Equality<T> = isEqual) {
     super();
     this.#name = options.name;
-    this.#value = options.value;
-    this.defaultValue = options.value;
     this.#equal = equal;
+    this.defaultValue = options.value;
     this.#validations = options.validations ?? [];
     this.#required = options.required ?? false;
+    this.#setValue(options.value);
   }
 
   get name() {

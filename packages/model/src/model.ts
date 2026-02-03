@@ -89,6 +89,10 @@ export class Model<T extends { [key: string]: any }>
     return Object.keys(this.#values);
   }
 
+  toJSON() {
+    return { ...this.#values };
+  }
+
   subscribe(observer: (value: ChangeEvent<T>) => void): Subscription {
     return this.on("change", (e) =>
       observer({ value: this.values, prev: this.values } as any),

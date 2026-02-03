@@ -10,7 +10,8 @@ export type CollectionChangeEvent<T> =
       type: "push";
       items: T[];
     }
-  | { type: "pop"; item: T | undefined };
+  | { type: "pop"; item: T | undefined }
+  | { type: "remove"; item: T; index: number };
 
 export interface CollectionEvents<T> {
   change: CollectionChangeEvent<T>;
@@ -68,6 +69,17 @@ export class Collection<T> implements IEventEmitter<CollectionEvents<T>> {
     return value;
   }
 
+  remove(index: number) {
+    if (index >= this.#values.length || index < 0) {
+      throw new RangeError("Invalid index");
+    }
+
+    let removed = this.#values.splice(index, 1);
+    this.#emitter.emit("change", { type: "remove", index, item: removed[0] });
+
+    return removed[0];
+  }
+
   at(index: number) {
     return this.#values[index];
   }
@@ -82,6 +94,10 @@ export class Collection<T> implements IEventEmitter<CollectionEvents<T>> {
 
   find(mapper: (value: T) => boolean): T | undefined {
     return this.#values.find(mapper);
+  }
+
+  toJSON() {
+    return [...this.#values];
   }
 
   [Symbol.iterator]() {

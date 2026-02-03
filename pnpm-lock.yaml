@@ -10,6 +10,9 @@ importers:
 
   packages/example:
     dependencies:
+      '@kildevaeld/model':
+        specifier: workspace:*
+        version: link:../model
       '@kildevaeld/solid-form2':
         specifier: workspace:*
         version: link:../solid-form2

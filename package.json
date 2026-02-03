@@ -1,8 +1,8 @@
 {
   "name": "form",
   "scripts": {
-    "build": "pnpm -r run build",
-    "watch": "pnpm -r run watch",
+    "build": "pnpm -r  run build",
+    "watch": "pnpm -r --parallel run watch",
     "test": "pnpm -r run test"
   }
 }

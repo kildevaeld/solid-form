@@ -1,5 +1,17 @@
-import { Form, type FormFields, type FormOptions } from "@kildevaeld/form";
-import { Accessor, batch, createEffect, onCleanup } from "solid-js";
+import {
+  Form as CoreForm,
+  FormStatus,
+  type FormFields,
+  type FormOptions,
+} from "@kildevaeld/form";
+import {
+  Accessor,
+  batch,
+  createEffect,
+  getOwner,
+  onCleanup,
+  runWithOwner,
+} from "solid-js";
 import { createField, FieldApi } from "./field";
 import { createTriggerCache } from "@solid-primitives/trigger";
 import { ValidateMode } from "@kildevaeld/form/dom";
@@ -12,10 +24,23 @@ export interface CreateFormOptions<T extends FormFields> {
   validationMode?: ValidateMode;
 }
 
+export interface FormApi<T extends FormFields> {
+  field<K extends keyof T>(name: K): FieldApi<T[K]>;
+  submit(e: SubmitEvent): Promise<void>;
+  reset(): void;
+  validate(): Promise<boolean>;
+  valid: () => boolean;
+  dirty: () => boolean;
+  values: () => T;
+  status: () => FormStatus;
+  isSubmitting: () => boolean;
+  form: CoreForm<T>;
+}
+
 export function createForm<T extends FormFields>(
   options: CreateFormOptions<T>,
-) {
-  const form = new Form<T>({
+): FormApi<T> {
+  const form = new CoreForm<T>({
     fields: options.fields,
     defaultValues: options.defaultValues?.(),
   });
@@ -51,16 +76,20 @@ export function createForm<T extends FormFields>(
     },
   });
 
+  const owner = getOwner();
+
   const fields = new Map<keyof T, FieldApi<T[keyof T]>>();
 
   return {
     field<K extends keyof T>(name: K) {
       let fieldApi = fields.get(name);
       if (!fieldApi) {
-        fieldApi = createField(
-          form.field(name),
-          options.validationMode ?? "change",
+        fieldApi = runWithOwner(owner, () =>
+          createField(form.field(name), options.validationMode ?? "change"),
         );
+        if (!fieldApi) {
+          throw new Error("Run outside owner");
+        }
         fields.set(name, fieldApi);
       }
       return fields.get(name) as FieldApi<T[K]>;

@@ -1,10 +1,7 @@
-import {
-  createForm,
-  min, max
-} from "@kildevaeld/solid-form2";
+import { createForm, min, max } from "@kildevaeld/solid-form2";
 import { Show, For, createSignal, createEffect, untrack } from "solid-js";
 import "../styles/UserForm.css";
-
+import { Collection } from "@kildevaeld/model";
 
 interface User {
   firstName: string;
@@ -12,7 +9,7 @@ interface User {
   email: string;
   age: number;
   bio: string;
-  interests: string[];
+  interests: Collection<string>;
 }
 
 export default function UserForm() {
@@ -26,16 +23,17 @@ export default function UserForm() {
       email: "",
       age: 22,
       bio: "",
-      interests: [],
+      interests: new Collection<string>(),
     }),
-    validationMode: 'submit',
+    validationMode: "submit",
     fields: {
       age: {
-        validations: [min(18), max(99)]
+        validations: [min(18), max(99)],
       },
       firstName: {
-        required: true
-      }
+        required: true,
+      },
+      interests: {},
     },
     submit: async (values) => {
       setFormData(values);
@@ -52,20 +50,16 @@ export default function UserForm() {
   //   console.log(untrack(form.field('age').errors))
   // })
 
+  const handleAddInterest = () => {
+    const interest = prompt("Enter an interest:");
+    if (interest) {
+      form.field("interests").value().push(interest);
+    }
+  };
 
-
-  
-
-  // const handleAddInterest = () => {
-  //   const interest = prompt("Enter an interest:");
-  //   if (interest) {
-  //     interestsField.push(interest);
-  //   }
-  // };
-
-  // const handleRemoveInterest = (index: number) => {
-  //   interestsField.remove(index);
-  // };
+  const handleRemoveInterest = (index: number) => {
+    form.field("interests").value().remove(index);
+  };
 
   return (
     <div class="user-form-container">
@@ -79,12 +73,12 @@ export default function UserForm() {
               id="firstName"
               type="text"
               placeholder="John"
-              ref={form.field('firstName').control}
+              ref={form.field("firstName").control}
               class="form-input"
             />
-            <For each={form.field('firstName').errors()}>
-              {e => {
-                return <p class="error">{e.message}</p>
+            <For each={form.field("firstName").errors()}>
+              {(e) => {
+                return <p class="error">{e.message}</p>;
               }}
             </For>
           </div>
@@ -95,7 +89,7 @@ export default function UserForm() {
               id="lastName"
               type="text"
               placeholder="Doe"
-              ref={form.field('lastName').control}
+              ref={form.field("lastName").control}
               class="form-input"
             />
             {/* <Show when={lastNameField.error()}>
@@ -109,7 +103,7 @@ export default function UserForm() {
               id="email"
               type="email"
               placeholder="john@example.com"
-              ref={form.field('email').control}
+              ref={form.field("email").control}
               class="form-input"
             />
             {/* <Show when={emailField.error()}>
@@ -128,12 +122,12 @@ export default function UserForm() {
               //   ageField.setValue(parseInt(e.currentTarget.value))
               // }
               // onBlur={() => ageField.validate()}
-              ref={form.field('age').control}
+              ref={form.field("age").control}
               class="form-input"
             />
-            <For each={form.field('age').errors()}>
-              {e => {
-                return <p class="error">{e.message}</p>
+            <For each={form.field("age").errors()}>
+              {(e) => {
+                return <p class="error">{e.message}</p>;
               }}
             </For>
           </div>
@@ -153,10 +147,10 @@ export default function UserForm() {
           </div> */}
         </div>
 
-        {/* <div class="form-section">
+        <div class="form-section">
           <h3>Interests</h3>
           <div class="interests-list">
-            <For each={interestsField.value()}>
+            <For each={[...form.field("interests").value()]}>
               {(interest, index) => (
                 <div class="interest-item">
                   <span>{interest}</span>
@@ -178,7 +172,7 @@ export default function UserForm() {
           >
             Add Interest
           </button>
-        </div> */}
+        </div>
 
         <div class="form-actions">
           <button
