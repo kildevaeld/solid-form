@@ -353,13 +353,34 @@ describe("createField control directive", () => {
       });
 
       // After dispose, changing input shouldn't affect field
+      const originalValue = baseField.value;
       input.value = "shouldnotupdate";
       input.dispatchEvent(new Event("input", { bubbles: true }));
 
-      // Wait a bit to ensure no update happens
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      // Check immediately that the value hasn't changed
+      expect(baseField.value).toBe(originalValue);
 
-      // Field should not have updated (check the underlying field directly)
+      // Also verify using a short polling period to ensure it stays unchanged
+      await new Promise<void>((resolve) => {
+        let checks = 0;
+        const maxChecks = 5;
+        const checkInterval = 10;
+        
+        const checkValue = () => {
+          expect(baseField.value).toBe(originalValue);
+          checks++;
+          
+          if (checks >= maxChecks) {
+            resolve();
+          } else {
+            setTimeout(checkValue, checkInterval);
+          }
+        };
+        
+        checkValue();
+      });
+
+      // Field should not have updated
       expect(baseField.value).not.toBe("shouldnotupdate");
 
       // Cleanup
