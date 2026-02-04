@@ -58,56 +58,59 @@ describe("createForm", () => {
   });
 
   test("should track form validity", async () => {
-    await new Promise<void>((resolve) => {
-      createRoot((dispose) => {
-        const form = createForm<TestFormFields>({
-          fields: {
-            username: { required: true },
-          },
-        });
+    await createAsyncRoot(async (owner) => {
+      const form = createForm<TestFormFields>({
+        fields: {
+          username: { required: true },
+        },
+      });
 
-        form.validate();
+      // Validate first to populate errors
+      await form.validate();
 
-        // Initially invalid because username is required but empty
-        expect(form.form.isValid).toBe(false);
+      // Initially invalid because username is required but empty
+      expect(form.form.isValid).toBe(false);
 
-        // Set a value
+      // Set a value and validate
+      await runWithOwner(owner, async () => {
         form.field("username").setValue("testuser");
+        await form.validate();
 
         // Should be valid now
-        setTimeout(() => {
-          expect(form.form.isValid).toBe(true);
-          dispose();
-          resolve();
-        }, 50);
+        expect(form.form.isValid).toBe(true);
       });
     });
   });
 
   test("should track form dirty state", async () => {
-    await new Promise<void>((resolve) => {
-      createRoot((dispose) => {
-        const [defaultValues] = createSignal<Partial<TestFormFields>>({
-          username: "john",
-        });
-
-        const form = createForm<TestFormFields>({
-          defaultValues,
-        });
-
-        // Initially not dirty
-        expect(form.form.isDirty).toBe(false);
-
-        // Change value
-        form.field("username").setValue("jane");
-
-        // Should be dirty now
-        setTimeout(() => {
-          expect(form.form.isDirty).toBe(true);
-          dispose();
-          resolve();
-        }, 50);
+    await createAsyncRoot(async (owner) => {
+      const [defaultValues] = createSignal<Partial<TestFormFields>>({
+        username: "john",
       });
+
+      const form = createForm<TestFormFields>({
+        defaultValues,
+      });
+
+      // Initially not dirty
+      expect(form.form.isDirty).toBe(false);
+
+      // Change value
+      form.field("username").setValue("jane");
+
+      // Use createEffect to wait for reactivity - wrap in runWithOwner
+      await runWithOwner(owner, () => {
+        return new Promise<void>((resolve) => {
+          createEffect(() => {
+            if (form.dirty()) {
+              resolve();
+            }
+          });
+        });
+      });
+
+      // Should be dirty now
+      expect(form.form.isDirty).toBe(true);
     });
   });
 

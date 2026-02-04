@@ -17,4 +17,7 @@ export default defineConfig({
       headless: true,
     },
   },
+  optimizeDeps: {
+    include: ["@solid-primitives/trigger"],
+  },
 });

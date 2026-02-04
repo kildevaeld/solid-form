@@ -1,7 +1,8 @@
 import { describe, test, expect, vi } from "vitest";
-import { createRoot, createEffect } from "solid-js";
+import { createRoot, createEffect, runWithOwner } from "solid-js";
 import { useEvent } from "./hooks.js";
 import { EventEmitter } from "@kildevaeld/model";
+import { createAsyncRoot } from "./util.js";
 
 interface TestEvents {
   change: { value: string };
@@ -11,57 +12,54 @@ interface TestEvents {
 
 describe("useEvent", () => {
   test("should subscribe to event on creation", async () => {
-    await new Promise<void>((resolve) => {
+    await createAsyncRoot(async (owner) => {
       const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn() as (
         payload: TestEvents[keyof TestEvents],
       ) => void;
 
-      createRoot((dispose) => {
-        // useEvent must be called inside createEffect since it uses onCleanup
-        createEffect(() => {
-          useEvent<TestEvents>(emitter, "change", handler);
-        });
+      // useEvent must be called inside createEffect since it uses onCleanup
+      createEffect(() => {
+        useEvent<TestEvents>(emitter, "change", handler);
+      });
 
-        // Give effect time to run
-        setTimeout(() => {
-          // Emit event
-          emitter.emit("change", { value: "test" });
+      // Wait for effect to run using a microtask
+      await Promise.resolve();
 
-          expect(handler).toHaveBeenCalledWith({ value: "test" });
-          expect(handler).toHaveBeenCalledTimes(1);
+      // After await, we need to run in the owner context
+      await runWithOwner(owner, () => {
+        // Emit event
+        emitter.emit("change", { value: "test" });
 
-          dispose();
-          resolve();
-        }, 50);
+        expect(handler).toHaveBeenCalledWith({ value: "test" });
+        expect(handler).toHaveBeenCalledTimes(1);
       });
     });
   });
 
   test("should handle multiple event emissions", async () => {
-    await new Promise<void>((resolve) => {
+    await createAsyncRoot(async (owner) => {
       const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
-      createRoot((dispose) => {
-        createEffect(() => {
-          useEvent<TestEvents>(emitter, "change", handler);
-        });
+      createEffect(() => {
+        useEvent<TestEvents>(emitter, "change", handler);
+      });
 
-        setTimeout(() => {
-          // Emit multiple events
-          emitter.emit("change", { value: "first" });
-          emitter.emit("change", { value: "second" });
-          emitter.emit("change", { value: "third" });
+      // Wait for effect to run
+      await Promise.resolve();
 
-          expect(handler).toHaveBeenCalledTimes(3);
-          expect(handler).toHaveBeenNthCalledWith(1, { value: "first" });
-          expect(handler).toHaveBeenNthCalledWith(2, { value: "second" });
-          expect(handler).toHaveBeenNthCalledWith(3, { value: "third" });
+      // After await, wrap in runWithOwner
+      await runWithOwner(owner, () => {
+        // Emit multiple events
+        emitter.emit("change", { value: "first" });
+        emitter.emit("change", { value: "second" });
+        emitter.emit("change", { value: "third" });
 
-          dispose();
-          resolve();
-        }, 50);
+        expect(handler).toHaveBeenCalledTimes(3);
+        expect(handler).toHaveBeenNthCalledWith(1, { value: "first" });
+        expect(handler).toHaveBeenNthCalledWith(2, { value: "second" });
+        expect(handler).toHaveBeenNthCalledWith(3, { value: "third" });
       });
     });
   });
@@ -76,7 +74,8 @@ describe("useEvent", () => {
           useEvent<TestEvents>(emitter, "change", handler);
         });
 
-        setTimeout(() => {
+        // Use Promise.resolve() to ensure effect has run
+        Promise.resolve().then(() => {
           // Emit event before dispose
           emitter.emit("change", { value: "before" });
           expect(handler).toHaveBeenCalledTimes(1);
@@ -90,84 +89,81 @@ describe("useEvent", () => {
           // Handler should not be called again
           expect(handler).toHaveBeenCalledTimes(1);
           resolve();
-        }, 50);
+        });
       });
     });
   });
 
   test("should work with different event types", async () => {
-    await new Promise<void>((resolve) => {
+    await createAsyncRoot(async (owner) => {
       const emitter = new EventEmitter<TestEvents>();
       const changeHandler = vi.fn();
       const saveHandler = vi.fn();
       const deleteHandler = vi.fn();
 
-      createRoot((dispose) => {
-        createEffect(() => {
-          useEvent<TestEvents>(emitter, "change", changeHandler);
-          useEvent<TestEvents>(emitter, "save", saveHandler);
-          useEvent<TestEvents>(emitter, "delete", deleteHandler);
-        });
+      createEffect(() => {
+        useEvent<TestEvents>(emitter, "change", changeHandler);
+        useEvent<TestEvents>(emitter, "save", saveHandler);
+        useEvent<TestEvents>(emitter, "delete", deleteHandler);
+      });
 
-        setTimeout(() => {
-          emitter.emit("change", { value: "test" });
-          emitter.emit("save", { id: 123 });
-          emitter.emit("delete", undefined);
+      // Wait for effect to run
+      await Promise.resolve();
 
-          expect(changeHandler).toHaveBeenCalledWith({ value: "test" });
-          expect(saveHandler).toHaveBeenCalledWith({ id: 123 });
-          expect(deleteHandler).toHaveBeenCalledWith(undefined);
+      // After await, wrap in runWithOwner
+      await runWithOwner(owner, () => {
+        emitter.emit("change", { value: "test" });
+        emitter.emit("save", { id: 123 });
+        emitter.emit("delete", undefined);
 
-          dispose();
-          resolve();
-        }, 50);
+        expect(changeHandler).toHaveBeenCalledWith({ value: "test" });
+        expect(saveHandler).toHaveBeenCalledWith({ id: 123 });
+        expect(deleteHandler).toHaveBeenCalledWith(undefined);
       });
     });
   });
 
   test("should handle void event payloads", async () => {
-    await new Promise<void>((resolve) => {
+    await createAsyncRoot(async (owner) => {
       const emitter = new EventEmitter<TestEvents>();
       const handler = vi.fn();
 
-      createRoot((dispose) => {
-        createEffect(() => {
-          useEvent<TestEvents>(emitter, "delete", handler);
-        });
+      createEffect(() => {
+        useEvent<TestEvents>(emitter, "delete", handler);
+      });
 
-        setTimeout(() => {
-          emitter.emit("delete", undefined);
+      // Wait for effect to run
+      await Promise.resolve();
 
-          expect(handler).toHaveBeenCalledWith(undefined);
+      // After await, wrap in runWithOwner
+      await runWithOwner(owner, () => {
+        emitter.emit("delete", undefined);
 
-          dispose();
-          resolve();
-        }, 50);
+        expect(handler).toHaveBeenCalledWith(undefined);
       });
     });
   });
 
   test("should allow multiple handlers for same event", async () => {
-    await new Promise<void>((resolve) => {
+    await createAsyncRoot(async (owner) => {
       const emitter = new EventEmitter<TestEvents>();
       const handler1 = vi.fn();
       const handler2 = vi.fn();
 
-      createRoot((dispose) => {
-        createEffect(() => {
-          useEvent<TestEvents>(emitter, "change", handler1);
-          useEvent<TestEvents>(emitter, "change", handler2);
-        });
+      createEffect(() => {
+        useEvent<TestEvents>(emitter, "change", handler1);
+        useEvent<TestEvents>(emitter, "change", handler2);
+      });
 
-        setTimeout(() => {
-          emitter.emit("change", { value: "test" });
+      // Wait for effect to run
+      await Promise.resolve();
 
-          expect(handler1).toHaveBeenCalledWith({ value: "test" });
-          expect(handler2).toHaveBeenCalledWith({ value: "test" });
+      // After await, wrap in runWithOwner
+      await runWithOwner(owner, () => {
+        emitter.emit("change", { value: "test" });
 
-          dispose();
-          resolve();
-        }, 50);
+        expect(handler1).toHaveBeenCalledWith({ value: "test" });
+        expect(handler2).toHaveBeenCalledWith({ value: "test" });
       });
     });
   });
@@ -182,7 +178,8 @@ describe("useEvent", () => {
           useEvent<TestEvents>(emitter, "change", handler);
         });
 
-        setTimeout(() => {
+        // Use Promise.resolve() to ensure effect has run
+        Promise.resolve().then(() => {
           emitter.emit("change", { value: "inside" });
           expect(handler).toHaveBeenCalledTimes(1);
 
@@ -193,7 +190,7 @@ describe("useEvent", () => {
           expect(handler).toHaveBeenCalledTimes(1);
 
           resolve();
-        }, 50);
+        });
       });
     });
   });
