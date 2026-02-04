@@ -6,8 +6,8 @@ export interface IObservableList<T> extends IEventEmitter<ListEvents<T>> {
   pop(): T | undefined;
   remove(index: number): T;
   at(index: number): T | undefined;
-  map<U>(mapper: (value: T) => U): List<U>;
-  filter(mapper: (value: T) => boolean): List<T>;
+  map<U>(mapper: (value: T) => U): ObservableList<U>;
+  filter(mapper: (value: T) => boolean): ObservableList<T>;
   find(mapper: (value: T) => boolean): T | undefined;
   toJSON(): T[];
 
@@ -31,7 +31,7 @@ export interface ListEvents<T> {
   change: ListChangeEvent<T>;
 }
 
-export class List<T>
+export class ObservableList<T>
   implements IEventEmitter<ListEvents<T>>, IObservableList<T>
 {
   #values: T[];
@@ -100,12 +100,12 @@ export class List<T>
     return this.#values[index];
   }
 
-  map<U>(mapper: (value: T) => U): List<U> {
-    return new List(this.#values.map(mapper));
+  map<U>(mapper: (value: T) => U): ObservableList<U> {
+    return new ObservableList(this.#values.map(mapper));
   }
 
-  filter(mapper: (value: T) => boolean): List<T> {
-    return new List(this.#values.filter(mapper));
+  filter(mapper: (value: T) => boolean): ObservableList<T> {
+    return new ObservableList(this.#values.filter(mapper));
   }
 
   find(mapper: (value: T) => boolean): T | undefined {

@@ -1,7 +1,7 @@
 import { createForm, min, max } from "@kildevaeld/solid-form2";
 import { Show, For, createSignal, createEffect, untrack } from "solid-js";
 import "../styles/UserForm.css";
-import { Collection } from "@kildevaeld/model";
+import { ObservableList } from "@kildevaeld/model";
 
 interface User {
   firstName: string;
@@ -9,7 +9,7 @@ interface User {
   email: string;
   age: number;
   bio: string;
-  interests: Collection<string>;
+  interests: ObservableList<string>;
 }
 
 export default function UserForm() {
@@ -23,7 +23,7 @@ export default function UserForm() {
       email: "",
       age: 22,
       bio: "",
-      interests: new Collection<string>(),
+      interests: new ObservableList<string>(),
     }),
     validationMode: "submit",
     fields: {

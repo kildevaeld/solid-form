@@ -1,4 +1,4 @@
-import { EventEmitter, IEventEmitter, Subscription } from "./emitter.js";
+import { IEventEmitter, Subscription } from "./emitter.js";
 
 export interface ChangeEvent<T> {
   prev: T;
