@@ -65,8 +65,9 @@ The test suite has been updated to eliminate timing dependencies and improve rel
 
 - **Removed arbitrary timeouts**: Tests no longer rely on fixed `setTimeout` delays
 - **Proper async/await patterns**: Uses promises and async/await for better synchronization
+- **Reusable utility functions**: Created `waitForCondition` and `pollCondition` helpers for consistent polling
 - **Reactive waiting**: Tests wait for actual state changes rather than arbitrary time periods
-- **Faster execution**: Test runtime improved from ~1.08s to ~85ms
+- **Faster execution**: Test runtime improved from ~1.08s to ~76ms
 - **More reliable**: Tests are now deterministic and don't fail due to timing variations
 
 ## Browser Mode
