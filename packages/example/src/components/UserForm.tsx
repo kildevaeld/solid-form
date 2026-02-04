@@ -190,7 +190,10 @@ export default function UserForm() {
           </button>
           <button
             type="button"
-            onClick={() => form.reset()}
+            onClick={() => {
+              form.reset();
+              form.field("interests").setValue(new ObservableList(["Hello"]));
+            }}
             class="btn btn-secondary"
           >
             Reset

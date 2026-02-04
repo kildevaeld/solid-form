@@ -9,15 +9,11 @@ import {
 import {
   Accessor,
   createEffect,
-  createMemo,
   createRoot,
   createSignal,
-  For,
   JSX,
   onCleanup,
-  onMount,
   Setter,
-  untrack,
 } from "solid-js";
 import { useEvents } from "./hooks";
 import { createTrigger } from "@solid-primitives/trigger";
@@ -48,7 +44,6 @@ export function Each<T extends IObservableList<any>>(
       change: (event) => {
         switch (event.type) {
           case "push":
-            console.log("push");
             for (let i = 0; i < event.items.length; i++) {
               const item = event.items[i];
               output.push(
@@ -125,40 +120,40 @@ export function Each<T extends IObservableList<any>>(
     });
 
     if (collection !== newCollection) {
-      disposers.forEach((d) => d());
-      disposers = new Array(newCollection.length);
-      output.length = 0;
       collection = newCollection;
+      disposers.forEach((d) => d());
+
+      disposers = new Array(collection.length);
       output = new Array(collection.length);
       items = new Array(collection.length);
       indexes = new Array(collection.length);
+
       for (let i = 0; i < collection.length; i++) {
-        output[i] = createRoot((dispose) => {
-          disposers[i] = dispose;
-          const [val, set] = createSignal(collection!.at(i)!);
-          items[i] = set;
-          const [index, setIndex] = createSignal(i);
-          indexes[i] = setIndex;
-          return props.children(val, index);
-        });
+        mapper(i, collection.at(i));
       }
 
       dirty();
     }
   });
 
+  function mapper(i: number, item: any) {
+    output[i] = createRoot((dispose) => {
+      disposers[i]?.();
+      disposers[i] = dispose;
+      const [val, set] = createSignal(item);
+      items[i] = set;
+      const [index, setIndex] = createSignal(i);
+      indexes[i] = setIndex;
+      return props.children(val, index);
+    });
+  }
+
   onCleanup(() => {
     disposers.forEach((d) => d());
   });
 
-  const out = createMemo(
-    () => {
-      track();
-      return output;
-    },
-    void 0,
-    { equals: false },
-  );
-
-  return out as unknown as JSX.Element;
+  return (() => {
+    track();
+    return output;
+  }) as unknown as JSX.Element;
 }
