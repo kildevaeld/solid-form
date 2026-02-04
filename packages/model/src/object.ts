@@ -36,7 +36,7 @@ export type ObservableObjectSchema = {
   [key: PropertyKey]: any;
 };
 
-export class ObservableObject<T extends ObservableObjectSchema>
+export class ObservableObject<T extends { [key: PropertyKey]: any }>
   extends Base<T>
   implements IEventEmitter<ObservableObjectEvents<T>>, IObservableObject<T>
 {
