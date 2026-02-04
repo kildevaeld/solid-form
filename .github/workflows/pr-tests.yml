@@ -40,6 +40,9 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run --filter @kildevaeld/model --filter @kildevaeld/form --filter @kildevaeld/solid-form2 build
       
       - name: Run tests
         run: pnpm test
