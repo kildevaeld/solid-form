@@ -10,6 +10,7 @@ export interface IObservableList<T> extends IEventEmitter<ListEvents<T>> {
   filter(mapper: (value: T) => boolean): ObservableList<T>;
   find(mapper: (value: T) => boolean): T | undefined;
   toJSON(): T[];
+  length: number;
 
   [Symbol.iterator](): IterableIterator<T>;
 }
@@ -97,7 +98,7 @@ export class ObservableList<T>
   }
 
   remove(index: number) {
-    if (index >= this.#values.length || index < 0) {
+    if (index > this.#values.length || index < 0) {
       throw new RangeError("Invalid index");
     }
 

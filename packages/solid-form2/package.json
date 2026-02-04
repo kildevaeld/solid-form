@@ -10,7 +10,7 @@
     ".": {
       "solid": {
         "types": "./dist/types/index.d.ts",
-        "default": "./dist/source/index.js"
+        "default": "./dist/source/index.jsx"
       },
       "import": {
         "types": "./dist/types/index.d.ts",
@@ -63,7 +63,7 @@
     "@vitest/browser": "^4.0.18",
     "@vitest/browser-playwright": "^4.0.18",
     "playwright": "^1.49.0",
-    "vite-plugin-solid": "^2.10.2",
+    "vite-plugin-solid": "^2.11.10",
     "vitest": "^4.0.18"
   }
 }

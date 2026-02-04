@@ -1,4 +1,4 @@
-import { createForm, min, max } from "@kildevaeld/solid-form2";
+import { createForm, min, max, Each } from "@kildevaeld/solid-form2";
 import { Show, For, createSignal, createEffect, untrack } from "solid-js";
 import "../styles/UserForm.css";
 import { ObservableList } from "@kildevaeld/model";
@@ -23,7 +23,7 @@ export default function UserForm() {
       email: "",
       age: 22,
       bio: "",
-      interests: new ObservableList<string>(),
+      interests: new ObservableList<string>(["Hello"]),
     }),
     validationMode: "submit",
     fields: {
@@ -156,10 +156,10 @@ export default function UserForm() {
         <div class="form-section">
           <h3>Interests</h3>
           <div class="interests-list">
-            <For each={[...form.field("interests").value()]}>
+            <Each items={form.field("interests").value()}>
               {(interest, index) => (
                 <div class="interest-item">
-                  <span>{interest}</span>
+                  <span>{interest()}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveInterest(index())}
@@ -169,7 +169,7 @@ export default function UserForm() {
                   </button>
                 </div>
               )}
-            </For>
+            </Each>
           </div>
           <button
             type="button"

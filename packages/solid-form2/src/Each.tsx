@@ -1,6 +1,7 @@
 import {
   Collection,
   IModel,
+  IObservableList,
   ListEvents,
   Model,
   ObservableObjectEvents,
@@ -21,9 +22,9 @@ import {
 import { useEvents } from "./hooks";
 import { createTrigger } from "@solid-primitives/trigger";
 
-export type CollectionItem<T> = T extends Collection<infer U> ? U : never;
+export type CollectionItem<T> = T extends IObservableList<infer U> ? U : never;
 
-export interface EachProps<T extends Collection<any>> {
+export interface EachProps<T extends IObservableList<any>> {
   items: T;
   children: (
     item: Accessor<CollectionItem<T>>,
@@ -31,7 +32,9 @@ export interface EachProps<T extends Collection<any>> {
   ) => JSX.Element;
 }
 
-export function Each<T extends Collection<any>>(props: EachProps<T>) {
+export function Each<T extends IObservableList<any>>(
+  props: EachProps<T>,
+): JSX.Element {
   let collection: T | undefined,
     disposers: (() => void)[] = [],
     output = [] as JSX.Element[],
@@ -40,10 +43,12 @@ export function Each<T extends Collection<any>>(props: EachProps<T>) {
   const [track, dirty] = createTrigger();
   createEffect(() => {
     const newCollection = props.items;
+
     useEvents<ListEvents<any>>(newCollection, {
       change: (event) => {
         switch (event.type) {
           case "push":
+            console.log("push");
             for (let i = 0; i < event.items.length; i++) {
               const item = event.items[i];
               output.push(
@@ -137,6 +142,8 @@ export function Each<T extends Collection<any>>(props: EachProps<T>) {
           return props.children(val, index);
         });
       }
+
+      dirty();
     }
   });
 
@@ -144,10 +151,14 @@ export function Each<T extends Collection<any>>(props: EachProps<T>) {
     disposers.forEach((d) => d());
   });
 
-  const out = createMemo(() => {
-    track();
-    return output;
-  });
+  const out = createMemo(
+    () => {
+      track();
+      return output;
+    },
+    void 0,
+    { equals: false },
+  );
 
-  return <>{out()}</>;
+  return out as unknown as JSX.Element;
 }
