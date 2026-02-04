@@ -8,6 +8,7 @@ import {
   Accessor,
   batch,
   createEffect,
+  createUniqueId,
   getOwner,
   onCleanup,
   runWithOwner,
@@ -28,12 +29,13 @@ export interface FormApi<T extends FormFields> {
   field<K extends keyof T>(name: K): FieldApi<T[K]>;
   submit(e: SubmitEvent): Promise<void>;
   reset(): void;
+  clear(): void;
   validate(): Promise<boolean>;
-  valid: () => boolean;
-  dirty: () => boolean;
-  values: () => T;
-  status: () => FormStatus;
-  isSubmitting: () => boolean;
+  valid: Accessor<boolean>;
+  dirty: Accessor<boolean>;
+  values: Accessor<T>;
+  status: Accessor<FormStatus>;
+  isSubmitting: Accessor<boolean>;
   form: CoreForm<T>;
 }
 
@@ -77,6 +79,7 @@ export function createForm<T extends FormFields>(
   });
 
   const owner = getOwner();
+  const formId = createUniqueId();
 
   const fields = new Map<keyof T, FieldApi<T[keyof T]>>();
 
@@ -85,7 +88,11 @@ export function createForm<T extends FormFields>(
       let fieldApi = fields.get(name);
       if (!fieldApi) {
         fieldApi = runWithOwner(owner, () =>
-          createField(form.field(name), options.validationMode ?? "change"),
+          createField(
+            formId,
+            form.field(name),
+            options.validationMode ?? "change",
+          ),
         );
         if (!fieldApi) {
           throw new Error("Run outside owner");
@@ -108,6 +115,9 @@ export function createForm<T extends FormFields>(
     },
     reset() {
       form.reset();
+    },
+    clear() {
+      form.clear();
     },
     validate() {
       return form.validate();

@@ -8,21 +8,32 @@ import { createTriggerCache } from "@solid-primitives/trigger";
 import { Accessor, onCleanup } from "solid-js";
 import { useEvents } from "./hooks";
 
+export interface Aria {
+  readonly hint: string;
+  readonly error: string;
+  readonly control: string;
+}
+
 export interface FieldApi<T> {
+  readonly name: string;
+  readonly aria: Aria;
   value: Accessor<T | undefined>;
   setValue(value: T | undefined): void;
   control: <E extends HTMLElement>(
     el: E,
     p?: Accessor<true | "input" | "change">,
   ) => void;
+  dirty: Accessor<boolean>;
+  valid: Accessor<boolean>;
   errors: Accessor<ValidationError[]>;
   validate(): Promise<boolean>;
 }
 
 export function createField<K, T>(
+  formId: string,
   field: Field<K, T>,
   validationMode: ValidateMode,
-) {
+): FieldApi<T> {
   const [track, dirty] = createTriggerCache<"$value" | "$errors">();
 
   useEvents(field, {
@@ -37,13 +48,24 @@ export function createField<K, T>(
     },
   });
 
+  const prefix = `${formId}-${String(field.name)}`;
+
   return {
-    name: field.name,
+    name: field.name as string,
+    aria: {
+      hint: `${prefix}-hint`,
+      error: `${prefix}-error`,
+      control: `${prefix}-control`,
+    },
     setValue(value: T) {
       field.setValue(value);
     },
     validate() {
       return field.validate();
+    },
+    valid() {
+      track("$errors");
+      return field.isValid;
     },
     dirty: () => {
       track("$value");

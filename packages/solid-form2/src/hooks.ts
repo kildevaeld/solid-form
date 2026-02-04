@@ -1,5 +1,6 @@
 import type { IEventEmitter, Subscription } from "@kildevaeld/model";
 import { Accessor, createEffect, onCleanup } from "solid-js";
+import { e } from "../../form/dist/field-C_JBlJF9";
 
 export function useEvent<E, K extends keyof E = keyof E>(
   emitter: IEventEmitter<E>,
@@ -14,12 +15,16 @@ export type EventOptions<T> = {
 };
 
 export function useEvents<E>(
-  emitter: Accessor<IEventEmitter<E>> | IEventEmitter<E>,
+  emitter: Accessor<IEventEmitter<E> | undefined> | IEventEmitter<E>,
   options: Accessor<EventOptions<E>> | EventOptions<E>,
 ) {
   createEffect(() => {
     const emitterRef = typeof emitter === "function" ? emitter() : emitter;
     const optionsRef = typeof options === "function" ? options() : options;
+
+    if (emitterRef === undefined) {
+      return;
+    }
 
     const subscriptions: Subscription[] = [];
     for (const k in optionsRef) {

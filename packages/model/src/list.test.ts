@@ -90,7 +90,7 @@ describe("ObservableList - Insert Tests", () => {
   test("should insert item at valid index", () => {
     const list = new ObservableList([1, 2, 3]);
 
-    list.insert(1, 10);
+    list.set(1, 10);
 
     expect(list.at(1)).toBe(10);
     expect(list.length).toBe(3);
@@ -101,10 +101,10 @@ describe("ObservableList - Insert Tests", () => {
     const listener = vi.fn();
 
     list.on("change", listener);
-    list.insert(0, "x");
+    list.set(0, "x");
 
     expect(listener).toHaveBeenCalledWith({
-      type: "insert",
+      type: "set",
       item: "x",
       prev: "a",
     });
@@ -113,8 +113,8 @@ describe("ObservableList - Insert Tests", () => {
   test("should throw error when inserting at invalid index", () => {
     const list = new ObservableList([1, 2, 3]);
 
-    expect(() => list.insert(10, 99)).toThrow(RangeError);
-    expect(() => list.insert(-1, 99)).toThrow(RangeError);
+    expect(() => list.set(10, 99)).toThrow(RangeError);
+    expect(() => list.set(-1, 99)).toThrow(RangeError);
   });
 
   test("should not emit event if inserted value is same as previous", () => {
@@ -122,7 +122,7 @@ describe("ObservableList - Insert Tests", () => {
     const listener = vi.fn();
 
     list.on("change", listener);
-    list.insert(1, 2);
+    list.set(1, 2);
 
     expect(listener).not.toHaveBeenCalled();
   });
@@ -490,7 +490,7 @@ describe("ObservableList - Event Handling Tests", () => {
 
     list.push(4);
     list.pop();
-    list.insert(0, 10);
+    list.set(0, 10);
     list.remove(0);
 
     expect(events).toEqual([
@@ -516,7 +516,7 @@ describe("ObservableList - Integration Tests", () => {
     expect(list.length).toBe(3);
 
     // Update
-    list.insert(1, "updated");
+    list.set(1, "updated");
     expect(list.at(1)).toBe("updated");
 
     // Delete
@@ -555,7 +555,7 @@ describe("ObservableList - Integration Tests", () => {
     expect(list.length).toBe(3);
     expect(list.toJSON()).toEqual([10, 30, 40]);
 
-    list.insert(1, 25);
+    list.set(1, 25);
     expect(list.toJSON()).toEqual([10, 25, 40]);
 
     const mapped = list.map((x) => x / 10);

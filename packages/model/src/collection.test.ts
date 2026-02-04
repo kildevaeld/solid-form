@@ -4,7 +4,9 @@ import { Model } from "./model";
 
 describe("Collection - Create Tests", () => {
   test("should create an empty collection", () => {
-    const collection = new Collection<Model<{ id: number; name: string }, "id">>();
+    const collection = new Collection<
+      Model<{ id: number; name: string }, "id">
+    >();
 
     expect(collection.length).toBe(0);
   });
@@ -27,7 +29,9 @@ describe("Collection - Create Tests", () => {
   });
 
   test("should push new models to collection", () => {
-    const collection = new Collection<Model<{ id: number; name: string }, "id">>();
+    const collection = new Collection<
+      Model<{ id: number; name: string }, "id">
+    >();
     const model = new Model({
       primaryKey: "id",
       values: { id: 1, name: "New Model" },
@@ -40,7 +44,9 @@ describe("Collection - Create Tests", () => {
   });
 
   test("should push multiple models at once", () => {
-    const collection = new Collection<Model<{ id: number; name: string }, "id">>();
+    const collection = new Collection<
+      Model<{ id: number; name: string }, "id">
+    >();
     const model1 = new Model({
       primaryKey: "id",
       values: { id: 1, name: "First" },
@@ -56,7 +62,9 @@ describe("Collection - Create Tests", () => {
   });
 
   test("should emit change event when pushing models", () => {
-    const collection = new Collection<Model<{ id: number; name: string }, "id">>();
+    const collection = new Collection<
+      Model<{ id: number; name: string }, "id">
+    >();
     const listener = vi.fn();
     const model = new Model({
       primaryKey: "id",
@@ -171,7 +179,7 @@ describe("Collection - Update Tests", () => {
       values: { id: 3, name: "Replacement" },
     });
 
-    collection.insert(0, newModel);
+    collection.set(0, newModel);
 
     expect(listener).toHaveBeenCalledWith({
       type: "insert",
@@ -243,7 +251,9 @@ describe("Collection - Update Tests", () => {
 
 describe("Collection - Integration Tests", () => {
   test("should support full create-update-delete lifecycle", () => {
-    const collection = new Collection<Model<{ id: number; name: string; active: boolean }, "id">>();
+    const collection = new Collection<
+      Model<{ id: number; name: string; active: boolean }, "id">
+    >();
 
     // Create - add new models
     const model1 = new Model({

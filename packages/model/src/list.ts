@@ -1,7 +1,7 @@
 import { EventEmitter, IEventEmitter } from "./emitter.js";
 
 export interface IObservableList<T> extends IEventEmitter<ListEvents<T>> {
-  insert(index: number, value: T): void;
+  set(index: number, value: T): void;
   push(...items: T[]): void;
   pop(): T | undefined;
   remove(index: number): T;
@@ -16,7 +16,7 @@ export interface IObservableList<T> extends IEventEmitter<ListEvents<T>> {
 
 export type ListChangeEvent<T> =
   | {
-      type: "insert";
+      type: "set";
       item: T;
       prev: T;
     }
@@ -25,7 +25,8 @@ export type ListChangeEvent<T> =
       items: T[];
     }
   | { type: "pop"; item: T | undefined }
-  | { type: "remove"; item: T; index: number };
+  | { type: "remove"; item: T; index: number }
+  | { type: "insert"; item: T; index: number };
 
 export interface ListEvents<T> {
   change: ListChangeEvent<T>;
@@ -62,7 +63,7 @@ export class ObservableList<T>
     this.#values.length = length;
   }
 
-  insert(index: number, value: T) {
+  set(index: number, value: T) {
     if (index >= this.#values.length || index < 0) {
       throw new RangeError("Invalid index");
     }
@@ -70,7 +71,17 @@ export class ObservableList<T>
     const prev = this.#values[index];
     this.#values[index] = value;
     if (prev !== value)
-      this.#emitter.emit("change", { type: "insert", item: value, prev });
+      this.#emitter.emit("change", { type: "set", item: value, prev });
+  }
+
+  insert(index: number, value: T) {
+    if (index >= this.#values.length || index < 0) {
+      throw new RangeError("Invalid index");
+    }
+
+    this.#values.splice(index, 0, value);
+
+    this.#emitter.emit("change", { type: "insert", item: value, index });
   }
 
   push(...items: T[]) {

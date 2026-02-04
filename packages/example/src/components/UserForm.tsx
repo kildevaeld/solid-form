@@ -68,19 +68,25 @@ export default function UserForm() {
           <h3>Personal Information</h3>
 
           <div class="form-group">
-            <label for="firstName">First Name</label>
+            <label for={form.field("firstName").aria.control}>First Name</label>
             <input
-              id="firstName"
+              id={form.field("firstName").aria.control}
               type="text"
               placeholder="John"
               ref={form.field("firstName").control}
               class="form-input"
+              aria-invalid={!form.field("firstName").valid() ? "true" : "false"}
+              aria-errormessage={form.field("firstName").aria.error}
             />
-            <For each={form.field("firstName").errors()}>
-              {(e) => {
-                return <p class="error">{e.message}</p>;
-              }}
-            </For>
+            <Show when={!form.field("firstName").valid()}>
+              <div id={form.field("firstName").aria.error}>
+                <For each={form.field("firstName").errors()}>
+                  {(e) => {
+                    return <p class="error">{e.message}</p>;
+                  }}
+                </For>
+              </div>
+            </Show>
           </div>
 
           <div class="form-group">
