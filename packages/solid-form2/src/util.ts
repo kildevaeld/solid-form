@@ -43,3 +43,70 @@ export function createAsyncRoot(testFn: (owner: Owner) => Promise<void>) {
     });
   });
 }
+
+/**
+ * Waits for a condition to become true by polling at regular intervals.
+ * 
+ * @param condition - A function that returns true when the desired state is reached
+ * @param options - Configuration options
+ * @param options.interval - Time in ms between checks (default: 10ms)
+ * @param options.timeout - Maximum time in ms to wait (default: 1000ms)
+ * @returns A promise that resolves when the condition is met or rejects on timeout
+ */
+export function waitForCondition(
+  condition: () => boolean,
+  options: { interval?: number; timeout?: number } = {},
+): Promise<void> {
+  const interval = options.interval ?? 10;
+  const timeout = options.timeout ?? 1000;
+  const startTime = Date.now();
+
+  return new Promise<void>((resolve, reject) => {
+    const check = () => {
+      if (condition()) {
+        resolve();
+      } else if (Date.now() - startTime >= timeout) {
+        reject(new Error("waitForCondition timeout"));
+      } else {
+        setTimeout(check, interval);
+      }
+    };
+    check();
+  });
+}
+
+/**
+ * Polls a condition multiple times to verify it remains stable.
+ * Useful for testing that something does NOT happen.
+ * 
+ * @param condition - A function that should consistently return true
+ * @param options - Configuration options
+ * @param options.checks - Number of times to check the condition (default: 5)
+ * @param options.interval - Time in ms between checks (default: 10ms)
+ * @returns A promise that resolves after all checks pass, or rejects if any check fails
+ */
+export function pollCondition(
+  condition: () => boolean,
+  options: { checks?: number; interval?: number } = {},
+): Promise<void> {
+  const checks = options.checks ?? 5;
+  const interval = options.interval ?? 10;
+  let count = 0;
+
+  return new Promise<void>((resolve, reject) => {
+    const check = () => {
+      if (!condition()) {
+        reject(new Error("pollCondition failed"));
+        return;
+      }
+      
+      count++;
+      if (count >= checks) {
+        resolve();
+      } else {
+        setTimeout(check, interval);
+      }
+    };
+    check();
+  });
+}

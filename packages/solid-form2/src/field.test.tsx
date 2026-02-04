@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { createRoot, createEffect, createSignal } from "solid-js";
 import { createField } from "./field.js";
 import { Field } from "@kildevaeld/form";
-import { createAsyncRoot } from "./util.js";
+import { createAsyncRoot, waitForCondition, pollCondition } from "./util.js";
 
 interface TestFields {
   username: string;
@@ -58,17 +58,8 @@ describe("createField", () => {
 
       field.setValue("changed");
 
-      // Wait for reactivity using a promise
-      await new Promise<void>((resolve) => {
-        const checkDirty = () => {
-          if (baseField.isDirty) {
-            resolve();
-          } else {
-            setTimeout(checkDirty, 10);
-          }
-        };
-        checkDirty();
-      });
+      // Wait for reactivity using waitForCondition
+      await waitForCondition(() => baseField.isDirty);
 
       expect(baseField.isDirty).toBe(true);
     });
@@ -164,16 +155,7 @@ describe("createField control directive", () => {
       input.dispatchEvent(new Event("input", { bubbles: true }));
 
       // Wait for the field to update
-      await new Promise<void>((resolve) => {
-        const checkValue = () => {
-          if (baseField.value === "testvalue") {
-            resolve();
-          } else {
-            setTimeout(checkValue, 10);
-          }
-        };
-        checkValue();
-      });
+      await waitForCondition(() => baseField.value === "testvalue");
 
       // Field should be updated
       expect(baseField.value).toBe("testvalue");
@@ -208,16 +190,7 @@ describe("createField control directive", () => {
       select.dispatchEvent(new Event("change", { bubbles: true }));
 
       // Wait for the field to update
-      await new Promise<void>((resolve) => {
-        const checkValue = () => {
-          if (baseField.value === "option2") {
-            resolve();
-          } else {
-            setTimeout(checkValue, 10);
-          }
-        };
-        checkValue();
-      });
+      await waitForCondition(() => baseField.value === "option2");
 
       // Field should be updated
       expect(baseField.value).toBe("option2");
@@ -245,17 +218,8 @@ describe("createField control directive", () => {
       input.value = "";
       input.dispatchEvent(new Event("input", { bubbles: true }));
 
-      // Wait for validation to complete using a promise that resolves when errors are populated
-      await new Promise<void>((resolve) => {
-        const checkErrors = () => {
-          if (baseField.errors.length > 0) {
-            resolve();
-          } else {
-            setTimeout(checkErrors, 10);
-          }
-        };
-        checkErrors();
-      });
+      // Wait for validation to complete
+      await waitForCondition(() => baseField.errors.length > 0);
 
       // Should have errors
       expect(baseField.errors.length).toBeGreaterThan(0);
@@ -265,16 +229,7 @@ describe("createField control directive", () => {
       input.dispatchEvent(new Event("input", { bubbles: true }));
 
       // Wait for validation to complete
-      await new Promise<void>((resolve) => {
-        const checkNoErrors = () => {
-          if (baseField.errors.length === 0) {
-            resolve();
-          } else {
-            setTimeout(checkNoErrors, 10);
-          }
-        };
-        checkNoErrors();
-      });
+      await waitForCondition(() => baseField.errors.length === 0);
 
       // Should have no errors
       expect(baseField.errors.length).toBe(0);
@@ -299,31 +254,13 @@ describe("createField control directive", () => {
       field.control(input);
 
       // Wait for control to set initial value
-      await new Promise<void>((resolve) => {
-        const checkInitial = () => {
-          if (input.value === "initial") {
-            resolve();
-          } else {
-            setTimeout(checkInitial, 10);
-          }
-        };
-        checkInitial();
-      });
+      await waitForCondition(() => input.value === "initial");
 
       // Change field value
       field.setValue("updated");
 
       // Wait for input to update
-      await new Promise<void>((resolve) => {
-        const checkUpdated = () => {
-          if (input.value === "updated") {
-            resolve();
-          } else {
-            setTimeout(checkUpdated, 10);
-          }
-        };
-        checkUpdated();
-      });
+      await waitForCondition(() => input.value === "updated");
 
       expect(input.value).toBe("updated");
 
@@ -360,25 +297,8 @@ describe("createField control directive", () => {
       // Check immediately that the value hasn't changed
       expect(baseField.value).toBe(originalValue);
 
-      // Also verify using a short polling period to ensure it stays unchanged
-      await new Promise<void>((resolve) => {
-        let checks = 0;
-        const maxChecks = 5;
-        const checkInterval = 10;
-        
-        const checkValue = () => {
-          expect(baseField.value).toBe(originalValue);
-          checks++;
-          
-          if (checks >= maxChecks) {
-            resolve();
-          } else {
-            setTimeout(checkValue, checkInterval);
-          }
-        };
-        
-        checkValue();
-      });
+      // Poll to ensure it stays unchanged
+      await pollCondition(() => baseField.value === originalValue);
 
       // Field should not have updated
       expect(baseField.value).not.toBe("shouldnotupdate");
